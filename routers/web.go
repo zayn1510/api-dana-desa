@@ -9,6 +9,7 @@ type RouteSetupFunc func(*gin.Engine)
 
 var routeSetups = []RouteSetupFunc{
 	SetUpRouterBidang,
+	SetUpRouterAuth,
 }
 
 func SetUpRouterBidang(e *gin.Engine) {
@@ -19,6 +20,14 @@ func SetUpRouterBidang(e *gin.Engine) {
 	group.POST("/", c.SaveBidang)
 	group.PUT("/", c.UpdateBidang)
 	group.DELETE("/", c.DeleteBidang)
+}
+
+func SetUpRouterAuth(e *gin.Engine) {
+	c := controllers.NewAuthUserController()
+	group := e.Group("/auth")
+	group.POST("/register", c.RegisterUser)
+	group.POST("/login", c.Login)
+
 }
 func RegisterRoutes(r *gin.Engine) {
 	for _, setup := range routeSetups {

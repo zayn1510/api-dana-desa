@@ -44,7 +44,7 @@ func (c *BidangController) GetAllBidangs(ctx *gin.Context) {
 		})
 		return
 	}
-	message := "data berhasil dimuats"
+	message := "data berhasil dimuat"
 	if len(data) == 0 {
 		message = "Data kosong"
 	}

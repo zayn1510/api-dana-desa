@@ -325,8 +325,8 @@ func createModel(name string) {
 		return
 	}
 	fmt.Println("Model berhasil dibuat di:", fullPath)
-	AddingMigration(rootPackage, folderPath, modelName)
-	AddingMethod(rootPackage, folderPath, modelName)
+	AddingMigration(rootPackage, modelName)
+	AddingMethod(rootPackage, modelName)
 }
 
 func getRootPackage() (string, error) {
@@ -360,7 +360,7 @@ func writeFileFromTemplate(filePath, tmpl string, name string) {
 		fmt.Println("Gagal menulis template:", err)
 	}
 }
-func AddingMigration(rootPackage, folder, modelName string) {
+func AddingMigration(rootPackage, modelName string) {
 	migrationPath := "app/migrations/"
 	timestamp := time.Now().Format("20060102150405") // Format: YYYYMMDDHHMMSS
 	migrationFile := migrationPath + strings.ToLower(modelName) + "_" + timestamp + ".go"
@@ -372,11 +372,11 @@ func AddingMigration(rootPackage, folder, modelName string) {
 	} else {
 
 		// Buat file migration
-		CreateMigrationFile(rootPackage, folder, modelName, migrationFile)
+		CreateMigrationFile(rootPackage, modelName, migrationFile)
 	}
 }
 
-func CreateMigrationFile(rootPackage, folder, modelName, migrationFile string) {
+func CreateMigrationFile(rootPackage, modelName, migrationFile string) {
 
 	// Buat isi file migration secara dinamis
 	migrationContent := fmt.Sprintf(`package migrations
@@ -400,7 +400,7 @@ func CreateMigrationFile(rootPackage, folder, modelName, migrationFile string) {
 	fmt.Println("Migration berhasil dibuat di:", migrationFile)
 }
 
-func AddingMethod(rootPackage, folder, modelName string) {
+func AddingMethod(rootPackage, modelName string) {
 	mainFile := "app/migrate/migrate.go"
 
 	// Baca isi file main.go

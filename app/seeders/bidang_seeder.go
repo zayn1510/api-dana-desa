@@ -9,7 +9,7 @@ import (
 
 func main() {
 	db := config.GetDB()
-	for i := 101; i <= 10000; i++ {
+	for i := 1; i <= 100; i++ {
 		bidang := models.Bidang{
 			Keterangan: fmt.Sprintf("Bidang Ke-%d", i),
 			KodeBidang: fmt.Sprintf("BID%d", i),
