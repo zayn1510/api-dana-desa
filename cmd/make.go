@@ -383,11 +383,13 @@ func CreateMigrationFile(rootPackage, modelName, migrationFile string) {
 
 	import (
 		"gorm.io/gorm"
+		"%s/app/models"
 	)
+
 	func Migrate%s(db *gorm.DB) error {
 		return db.AutoMigrate(&models.%s{})
 	}
-`, modelName, modelName)
+`, rootPackage, modelName, modelName)
 
 	err := os.WriteFile(migrationFile, []byte(migrationContent), 0644)
 	if err != nil {
@@ -408,13 +410,9 @@ func AddingMethod(rootPackage, modelName string) {
 		return
 	}
 	mainCode := string(content)
-	importStatement := fmt.Sprintf(`	"%s/app/models"`, rootPackage)
 	migrationImport := fmt.Sprintf(`"%s/app/migrations"`, rootPackage)
 
 	if strings.Contains(mainCode, "import (") {
-		if !strings.Contains(mainCode, importStatement) {
-			mainCode = strings.Replace(mainCode, "import (", "import (\n"+importStatement, 1)
-		}
 		if !strings.Contains(mainCode, migrationImport) {
 			mainCode = strings.Replace(mainCode, "import (", "import (\n"+migrationImport, 1)
 		}
@@ -424,7 +422,7 @@ func AddingMethod(rootPackage, modelName string) {
 			endImportIdx := strings.Index(mainCode[lastImportIdx:], "\n")
 			if endImportIdx != -1 {
 				insertPos := lastImportIdx + endImportIdx
-				mainCode = mainCode[:insertPos] + "\n" + importStatement + "\n" + migrationImport + mainCode[insertPos:]
+				mainCode = mainCode[:insertPos] + "\n" + migrationImport + mainCode[insertPos:]
 			}
 		}
 	}
