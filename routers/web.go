@@ -13,6 +13,7 @@ var routeSetups = []RouteSetupFunc{
 	SetUpRouterAuth,
 	SetUpRouterSubBidang,
 	SetUpRouterKegiatan,
+	SetUpRouterTahunAnggaran,
 }
 
 func SetUpRouterBidang(e *gin.Engine) {
@@ -42,6 +43,15 @@ func SetUpRouterKegiatan(e *gin.Engine) {
 	group.POST("/", c.CreateKegiatan)
 	group.PUT("/:id", c.UpdateKegiatan)
 	group.DELETE("/:id", c.DeleteKegiatan)
+}
+func SetUpRouterTahunAnggaran(e *gin.Engine) {
+	c := controllers.NewTahunAnggaranController()
+	group := e.Group("/tahun-anggaran")
+	group.Use(middleware.JWTMiddleware())
+	group.GET("/", c.GetData)
+	group.POST("/", c.CreateData)
+	group.PUT("/:id", c.UpdateData)
+	group.DELETE("/:id", c.DeleteData)
 }
 func SetUpRouterAuth(e *gin.Engine) {
 	c := controllers.NewAuthUserController()
