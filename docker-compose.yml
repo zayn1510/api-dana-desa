@@ -67,4 +67,4 @@ volumes:
 
 networks:
   mynetwork:
-    driver: bridge 
+    driver: bridge

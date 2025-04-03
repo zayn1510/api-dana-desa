@@ -2,6 +2,7 @@ package routers
 
 import (
 	"apidanadesa/app/controllers"
+	"apidanadesa/app/middleware"
 	"github.com/gin-gonic/gin"
 )
 
@@ -13,9 +14,9 @@ var routeSetups = []RouteSetupFunc{
 }
 
 func SetUpRouterBidang(e *gin.Engine) {
-
 	c := controllers.NewControllerBidang()
 	group := e.Group("/bidang")
+	group.Use(middleware.JWTMiddleware())
 	group.GET("/", c.GetAllBidangs)
 	group.POST("/", c.SaveBidang)
 	group.PUT("/", c.UpdateBidang)

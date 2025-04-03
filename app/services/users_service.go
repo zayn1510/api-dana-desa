@@ -1,6 +1,7 @@
 package services
 
 import (
+	"apidanadesa/app/middleware"
 	"apidanadesa/app/models"
 	"apidanadesa/app/requests"
 	"apidanadesa/config"
@@ -37,5 +38,5 @@ func (s *UsersService) LoginUser(req requests.UserRequestLogin) (string, error) 
 	if err := requests.CheckPassword(user.Password, req.Password); err != nil {
 		return "", errors.New("invalid credentials")
 	}
-	return requests.GenerateJWT(user.Username)
+	return middleware.GenerateJWT(user.Username)
 }
