@@ -16,6 +16,7 @@ func main() {
 	}
 	generateBidang(db)
 	generateUser(db)
+	generateSubBidang(db)
 	fmt.Println("Semua migrasi selesai!")
 }
 
@@ -32,4 +33,12 @@ func generateUser(db *gorm.DB) {
 		log.Fatalf("Gagal migrasi User: %v", err)
 	}
 	fmt.Println("Migrasi User selesai.")
+}
+
+func generateSubBidang(db *gorm.DB) {
+	fmt.Println("Migrasi tabel SubBidang...")
+	if err := migrations.MigrateSubBidang(db); err != nil {
+		log.Fatalf("Gagal migrasi SubBidang: %v", err)
+	}
+	fmt.Println("Migrasi SubBidang selesai.")
 }

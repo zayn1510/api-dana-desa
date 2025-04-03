@@ -383,13 +383,11 @@ func CreateMigrationFile(rootPackage, modelName, migrationFile string) {
 
 	import (
 		"gorm.io/gorm"
-		"%s/app/models"
 	)
-
 	func Migrate%s(db *gorm.DB) error {
 		return db.AutoMigrate(&models.%s{})
 	}
-`, rootPackage, modelName, modelName)
+`, modelName, modelName)
 
 	err := os.WriteFile(migrationFile, []byte(migrationContent), 0644)
 	if err != nil {

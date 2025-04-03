@@ -11,6 +11,7 @@ type RouteSetupFunc func(*gin.Engine)
 var routeSetups = []RouteSetupFunc{
 	SetUpRouterBidang,
 	SetUpRouterAuth,
+	SetUpRouterSubBidang,
 }
 
 func SetUpRouterBidang(e *gin.Engine) {
@@ -21,6 +22,16 @@ func SetUpRouterBidang(e *gin.Engine) {
 	group.POST("/", c.SaveBidang)
 	group.PUT("/", c.UpdateBidang)
 	group.DELETE("/", c.DeleteBidang)
+}
+
+func SetUpRouterSubBidang(e *gin.Engine) {
+	c := controllers.NewSubBidangController()
+	group := e.Group("/sub-bidang")
+	group.Use(middleware.JWTMiddleware())
+	group.GET("/", c.GetSubBidangs)
+	group.POST("/", c.CreateSubBidang)
+	group.PUT("/:id", c.UpdateSubBidang)
+	group.DELETE("/:id", c.DeleSubBidang)
 }
 
 func SetUpRouterAuth(e *gin.Engine) {
