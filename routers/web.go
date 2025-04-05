@@ -6,27 +6,27 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-type RouteSetupFunc func(*gin.Engine)
+func setUpRouterPing(router *gin.Engine) {
+	router.GET("/ping", func(c *gin.Context) {
+		c.JSON(200, gin.H{
+			"message": "bidang",
+		})
+	})
 
-var routeSetups = []RouteSetupFunc{
-	SetUpRouterBidang,
-	SetUpRouterAuth,
-	SetUpRouterSubBidang,
-	SetUpRouterKegiatan,
-	SetUpRouterTahunAnggaran,
+	router.GET("/bidangs", controllers.NewControllerBidang().GetAllBidangs)
+
 }
-
-func SetUpRouterBidang(e *gin.Engine) {
+func SetUpRouterBidang(api *gin.RouterGroup) {
 	c := controllers.NewControllerBidang()
-	group := e.Group("/bidang")
-	group.Use(middleware.JWTMiddleware())
-	group.GET("/", c.GetAllBidangs)
-	group.POST("/", c.SaveBidang)
-	group.PUT("/", c.UpdateBidang)
-	group.DELETE("/", c.DeleteBidang)
+	bidang := api.Group("/bidang")
+	bidang.Use(middleware.JWTMiddleware())
+	bidang.GET("/", c.GetAllBidangs)
+	bidang.POST("/", c.SaveBidang)
+	bidang.PUT("/", c.UpdateBidang)
+	bidang.DELETE("/", c.DeleteBidang)
 }
 
-func SetUpRouterSubBidang(e *gin.Engine) {
+func SetUpRouterSubBidang(e *gin.RouterGroup) {
 	c := controllers.NewSubBidangController()
 	group := e.Group("/sub-bidang")
 	group.Use(middleware.JWTMiddleware())
@@ -35,7 +35,7 @@ func SetUpRouterSubBidang(e *gin.Engine) {
 	group.PUT("/:id", c.UpdateSubBidang)
 	group.DELETE("/:id", c.DeleSubBidang)
 }
-func SetUpRouterKegiatan(e *gin.Engine) {
+func SetUpRouterKegiatan(e *gin.RouterGroup) {
 	c := controllers.NewKegiatanController()
 	group := e.Group("/kegiatan")
 	group.Use(middleware.JWTMiddleware())
@@ -44,7 +44,7 @@ func SetUpRouterKegiatan(e *gin.Engine) {
 	group.PUT("/:id", c.UpdateKegiatan)
 	group.DELETE("/:id", c.DeleteKegiatan)
 }
-func SetUpRouterTahunAnggaran(e *gin.Engine) {
+func SetUpRouterTahunAnggaran(e *gin.RouterGroup) {
 	c := controllers.NewTahunAnggaranController()
 	group := e.Group("/tahun-anggaran")
 	group.Use(middleware.JWTMiddleware())
@@ -53,15 +53,27 @@ func SetUpRouterTahunAnggaran(e *gin.Engine) {
 	group.PUT("/:id", c.UpdateData)
 	group.DELETE("/:id", c.DeleteData)
 }
-func SetUpRouterAuth(e *gin.Engine) {
+func SetUpRouterAuth(e *gin.RouterGroup) {
 	c := controllers.NewAuthUserController()
 	group := e.Group("/auth")
 	group.POST("/register", c.RegisterUser)
 	group.POST("/login", c.Login)
-
+}
+func SetUpRouterJabatanDesa(e *gin.RouterGroup) {
+	c := controllers.NewControllerJabatanDesa()
+	group := e.Group("/jabatan-desa")
+	group.Use(middleware.JWTMiddleware())
+	group.GET("/", c.GetData)
+	group.POST("/", c.CreateData)
+	group.PUT("/:id", c.UpdateData)
+	group.DELETE("/:id", c.DeleteData)
 }
 func RegisterRoutes(r *gin.Engine) {
-	for _, setup := range routeSetups {
-		setup(r)
-	}
+	api := r.Group("/api/v1")
+	SetUpRouterBidang(api)
+	SetUpRouterSubBidang(api)
+	SetUpRouterKegiatan(api)
+	SetUpRouterTahunAnggaran(api)
+	SetUpRouterAuth(api)
+	SetUpRouterJabatanDesa(api)
 }

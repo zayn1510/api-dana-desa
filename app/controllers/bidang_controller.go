@@ -44,7 +44,7 @@ func (c *BidangController) GetAllBidangs(ctx *gin.Context) {
 		})
 		return
 	}
-	message := "data berhasil dimuat"
+	message := "data berhasil dimuats"
 	if len(data) == 0 {
 		message = "Data kosong"
 	}
@@ -61,7 +61,7 @@ func (c *BidangController) SaveBidang(ctx *gin.Context) {
 	err := ctx.ShouldBindJSON(&req)
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, resources.Response{
-			Message: "Invalid request format",
+			Message: err.Error(),
 			Status:  false,
 		})
 		return

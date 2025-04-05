@@ -1,17 +1,20 @@
 package main
 
 import (
+	"apidanadesa/app/controllers"
+	"apidanadesa/app/middleware"
 	"apidanadesa/routers"
 	"github.com/gin-gonic/gin"
 )
 
+func SetUpRouterBidang(rg *gin.RouterGroup) {
+	c := controllers.NewControllerBidang()
+	bidang := rg.Group("/bidang")
+	bidang.GET("/", c.GetAllBidangs)
+}
 func main() {
-	c := gin.Default()
-	c.GET("/pong", func(c *gin.Context) {
-		c.JSON(200, gin.H{
-			"message": "pongs",
-		})
-	})
-	routers.RegisterRoutes(c)
-	c.Run(":8080")
+	router := gin.Default()
+	middleware.SetCors(router)
+	routers.RegisterRoutes(router)
+	router.Run(":8080")
 }

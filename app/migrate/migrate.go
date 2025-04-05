@@ -19,6 +19,7 @@ func main() {
 	generateSubBidang(db)
 	generateKegiatan(db)
 		generateTahunAnggaran(db)
+		generateJabatanDesa(db)
 	fmt.Println("Semua migrasi selesai!")
 }
 
@@ -59,4 +60,11 @@ func generateTahunAnggaran(db *gorm.DB) {
 			log.Fatalf("Gagal migrasi TahunAnggaran: %v", err)
 		}
 		fmt.Println("Migrasi TahunAnggaran selesai.")
+}
+func generateJabatanDesa(db *gorm.DB) {
+		fmt.Println("Migrasi tabel JabatanDesa...")
+		if err := migrations.MigrateJabatanDesa(db); err != nil {
+			log.Fatalf("Gagal migrasi JabatanDesa: %v", err)
+		}
+		fmt.Println("Migrasi JabatanDesa selesai.")
 }
