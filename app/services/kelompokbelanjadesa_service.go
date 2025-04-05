@@ -19,19 +19,39 @@ func NewKelompokBelanjaService() *KelompokBelanjaDesaService {
 		db: config.GetDB(),
 	}
 }
-func (s *KelompokBelanjaDesaService) IsKodeExist(kode string, id uint) (string, bool) {
+func (s *KelompokBelanjaDesaService) IsKodeExist(kode string, id uint) error {
 	var count int64
-	s.db.
+	query := s.db.
 		Model(&models.KelompokBelanjaDesa{}).
-		Where("kode = ? AND id != ? AND deleted_at IS NULL", kode, id).
-		Count(&count)
+		Where("kode= ?", kode)
+	if id > 0 {
+		query = query.Where("id != ?", id)
+	}
+	query.Count(&count)
 
 	if count > 0 {
-		return fmt.Sprintf("Kode %s sudah digunakan", kode), true
+		return fmt.Errorf("kode Kelompok Belanja sudah digunakan")
 	}
-	return "", false
+	return nil
+}
+func (s *KelompokBelanjaDesaService) IsExist(id uint) (models.KelompokBelanjaDesa, error) {
+	var kelompokBelanja models.KelompokBelanjaDesa
+	err := s.db.
+		Where("id = ?", id).
+		First(&kelompokBelanja).Error
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return kelompokBelanja, fmt.Errorf("ID tidak ditemukan")
+	} else if err != nil {
+		return kelompokBelanja, fmt.Errorf("gagal mencari ID")
+	}
+	return kelompokBelanja, nil
 }
 func (s *KelompokBelanjaDesaService) CreateData(req *requests.KelompokBelanjaDesaRequest) error {
+
+	duplicate := s.IsKodeExist(req.Kode, 0)
+	if duplicate != nil {
+		return duplicate
+	}
 	data := req.ToModelKelompokBelanja()
 	err := s.db.Create(&data).Error
 	if err != nil {
@@ -43,24 +63,23 @@ func (s *KelompokBelanjaDesaService) CreateData(req *requests.KelompokBelanjaDes
 	return nil
 }
 func (s *KelompokBelanjaDesaService) UpdateData(req *requests.KelompokBelanjaDesaRequest, id uint) error {
-	var model models.KelompokBelanjaDesa
-	if err := s.db.First(&model, id).Error; err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return fmt.Errorf("ID %d tidak ditemukan", id)
-		}
+	model, err := s.IsExist(id)
+	if err != nil {
 		return err
+	}
+	duplicate := s.IsKodeExist(req.Kode, id)
+	if duplicate != nil {
+		return duplicate
 	}
 	data := req.ToModelKelompokBelanja()
 	return s.db.Model(&model).Updates(data).Error
 }
 func (s *KelompokBelanjaDesaService) DeleteData(id uint) error {
-	if err := s.db.First(&models.KelompokBelanjaDesa{}, id).Error; err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return fmt.Errorf("ID %d tidak ditemukan", id)
-		}
+	model, err := s.IsExist(id)
+	if err != nil {
 		return err
 	}
-	return s.db.Delete(&models.KelompokBelanjaDesa{}, id).Error
+	return s.db.Delete(&model, id).Error
 }
 func (s *KelompokBelanjaDesaService) GetAll(offset, limit int) ([]models.KelompokBelanjaDesa, error) {
 	if offset < 0 {

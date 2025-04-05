@@ -22,7 +22,7 @@ func newSubBidangResource(m models.SubBidang) *SubBidangResource {
 		ID:            m.ID,
 		KodeBidang:    m.Bidang.KodeBidang,
 		Bidang:        m.Bidang.Keterangan,
-		Keterangan:    m.Bidang.Keterangan,
+		Keterangan:    m.Keterangan,
 		KodeSubBidang: m.KodeSubBidang,
 		CreatedAt:     m.CreatedAt.Format("2006-01-02 15:04:05"),
 		UpdatedAt:     m.UpdatedAt.Format("2006-01-02 15:04:05"),

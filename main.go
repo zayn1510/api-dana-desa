@@ -15,6 +15,7 @@ func SetUpRouterBidang(rg *gin.RouterGroup) {
 func main() {
 	router := gin.Default()
 	middleware.SetCors(router)
+	router.Use(middleware.ErrorHandler())
 	routers.RegisterRoutes(router)
 	router.Run(":8080")
 }

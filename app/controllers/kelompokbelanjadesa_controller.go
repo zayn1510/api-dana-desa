@@ -5,8 +5,8 @@ import (
 	"apidanadesa/app/resources"
 	"apidanadesa/app/services"
 	"github.com/gin-gonic/gin"
-	"net/http"
 	"strconv"
+	"strings"
 )
 
 type KelompokBelanjaDesaController struct {
@@ -23,30 +23,18 @@ func (c *KelompokBelanjaDesaController) GetData(ctx *gin.Context) {
 	limitStr := ctx.DefaultQuery("limit", "10")
 	page, err := strconv.Atoi(pageStr)
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, resources.Response{
-			Message: err.Error(),
-			Status:  false,
-			Code:    http.StatusBadRequest,
-		})
+		resources.BadRequest(ctx, err)
 		return
 	}
 	limit, err := strconv.Atoi(limitStr)
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, resources.Response{
-			Message: err.Error(),
-			Status:  false,
-			Code:    http.StatusBadRequest,
-		})
+		resources.BadRequest(ctx, err)
 		return
 	}
 	offset := (page - 1) * limit
 	data, err := c.service.GetAll(offset, limit)
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, resources.Response{
-			Message: err.Error(),
-			Status:  false,
-			Code:    http.StatusInternalServerError,
-		})
+		resources.InternalError(ctx, err)
 		return
 	}
 	message := "Data kosong"
@@ -54,54 +42,31 @@ func (c *KelompokBelanjaDesaController) GetData(ctx *gin.Context) {
 		message = "data berhasil dimuat"
 	}
 	response := resources.GetResponseKelompokBelanja(data)
-	ctx.JSON(http.StatusOK, resources.Response{
-		Message: message,
-		Status:  true,
-		Code:    http.StatusOK,
-		Data:    response,
-	})
+	resources.Success(ctx, message, response)
 
 }
 
 func (c *KelompokBelanjaDesaController) CreateData(ctx *gin.Context) {
 	var req requests.KelompokBelanjaDesaRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
-		ctx.JSON(http.StatusBadRequest, resources.Response{
-			Message: err.Error(),
-			Status:  false,
-			Code:    http.StatusBadRequest,
-		})
+		resources.BadRequest(ctx, err)
 		return
 	}
 
-	if errors, err := requests.Validate(&req); err != nil {
-		ctx.JSON(http.StatusUnprocessableEntity, gin.H{"validation_errors": errors})
-		return
-	}
-	if msg, exists := c.service.IsKodeExist(req.Kode, uint(0)); exists {
-		ctx.JSON(http.StatusConflict, resources.Response{
-			Message:   msg,
-			Status:    false,
-			Code:      http.StatusConflict,
-			Duplicate: true,
-		})
+	if _, err := requests.Validate(&req); err != nil {
+		resources.BadRequest(ctx, err)
 		return
 	}
 	err := c.service.CreateData(&req)
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, resources.Response{
-			Message: err.Error(),
-			Status:  false,
-			Code:    http.StatusInternalServerError,
-		})
+		if strings.Contains(err.Error(), "sudah digunakan") {
+			resources.Conflict(ctx, err)
+			return
+		}
+		resources.InternalError(ctx, err)
 		return
 	}
-	ctx.JSON(http.StatusOK, resources.Response{
-		Status:  true,
-		Data:    req,
-		Code:    http.StatusOK,
-		Message: "data berhasil dibuat",
-	})
+	resources.Created(ctx, "data berhasil dibuat", req)
 }
 func (c *KelompokBelanjaDesaController) UpdateData(ctx *gin.Context) {
 
@@ -109,72 +74,44 @@ func (c *KelompokBelanjaDesaController) UpdateData(ctx *gin.Context) {
 	idStr := ctx.Param("id")
 	id, err := strconv.Atoi(idStr)
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, resources.Response{
-			Message: err.Error(),
-			Status:  false,
-			Code:    http.StatusBadRequest,
-		})
+		resources.BadRequest(ctx, err)
 		return
 	}
 
 	if err := ctx.ShouldBindJSON(&req); err != nil {
-		ctx.JSON(http.StatusBadRequest, resources.Response{
-			Message: err.Error(),
-			Status:  false,
-			Code:    http.StatusBadRequest,
-		})
-		return
-	}
-
-	msg, exist := c.service.IsKodeExist(req.Kode, uint(id))
-	if exist {
-		ctx.JSON(http.StatusConflict, resources.Response{
-			Message:   msg,
-			Status:    false,
-			Code:      http.StatusConflict,
-			Duplicate: true,
-		})
+		resources.BadRequest(ctx, err)
 		return
 	}
 	err = c.service.UpdateData(&req, uint(id))
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, resources.Response{
-			Message: err.Error(),
-			Status:  false,
-			Code:    http.StatusInternalServerError,
-		})
+		if strings.Contains(err.Error(), "tidak ditemukan") {
+			resources.NotFound(ctx, err)
+			return
+		}
+		if strings.Contains(err.Error(), "sudah digunakan") {
+			resources.Conflict(ctx, err)
+			return
+		}
+		resources.InternalError(ctx, err)
 		return
 	}
-	ctx.JSON(http.StatusOK, resources.Response{
-		Status:  true,
-		Data:    req,
-		Code:    http.StatusOK,
-		Message: "data berhasil diperbarui",
-	})
+	resources.Success(ctx, "data berhasil diupdate", req)
 }
 func (c *KelompokBelanjaDesaController) DeleteData(ctx *gin.Context) {
 	idStr := ctx.Param("id")
 	id, err := strconv.Atoi(idStr)
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, resources.Response{
-			Message: err.Error(),
-			Status:  false,
-			Code:    http.StatusBadRequest,
-		})
+		resources.BadRequest(ctx, err)
 		return
 	}
 	err = c.service.DeleteData(uint(id))
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, resources.Response{
-			Message: err.Error(),
-			Status:  false,
-			Code:    http.StatusInternalServerError,
-		})
+		if strings.Contains(err.Error(), "tidak ditemukan") {
+			resources.NotFound(ctx, err)
+			return
+		}
+		resources.InternalError(ctx, err)
 		return
 	}
-	ctx.JSON(http.StatusOK, resources.Response{
-		Status:  true,
-		Message: "data berhasil dihapus",
-		Code:    http.StatusOK,
-	})
+	resources.Success(ctx, "data berhasil dibuat")
 }

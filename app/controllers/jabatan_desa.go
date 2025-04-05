@@ -5,8 +5,8 @@ import (
 	"apidanadesa/app/resources"
 	"apidanadesa/app/services"
 	"github.com/gin-gonic/gin"
-	"net/http"
 	"strconv"
+	"strings"
 )
 
 type JabatanDesaController struct {
@@ -23,27 +23,18 @@ func (c *JabatanDesaController) GetData(ctx *gin.Context) {
 	limitStr := ctx.DefaultQuery("limit", "10")
 	page, err := strconv.Atoi(pageStr)
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, resources.Response{
-			Message: err.Error(),
-			Status:  false,
-		})
+		resources.BadRequest(ctx, err)
 		return
 	}
 	limit, err := strconv.Atoi(limitStr)
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, resources.Response{
-			Message: err.Error(),
-			Status:  false,
-		})
+		resources.BadRequest(ctx, err)
 		return
 	}
 	offset := (page - 1) * limit
 	data, err := c.service.GetData(offset, limit)
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, resources.Response{
-			Message: err.Error(),
-			Status:  false,
-		})
+		resources.InternalError(ctx, err)
 		return
 	}
 	message := "Data kosong"
@@ -51,36 +42,22 @@ func (c *JabatanDesaController) GetData(ctx *gin.Context) {
 		message = "data berhasil dimuat"
 	}
 	response := resources.GetResponseJabatanDesa(data)
-	ctx.JSON(http.StatusOK, resources.Response{
-		Message: message,
-		Status:  true,
-		Data:    response,
-	})
+	resources.Success(ctx, message, response)
 
 }
 
 func (c *JabatanDesaController) CreateData(ctx *gin.Context) {
 	var req requests.JabatanDesaRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
-		ctx.JSON(http.StatusBadRequest, resources.Response{
-			Message: err.Error(),
-			Status:  false,
-		})
+		resources.BadRequest(ctx, err)
 		return
 	}
 	err := c.service.CreateData(&req)
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, resources.Response{
-			Message: err.Error(),
-			Status:  false,
-		})
+		resources.InternalError(ctx, err)
 		return
 	}
-	ctx.JSON(http.StatusOK, resources.Response{
-		Status:  true,
-		Data:    req,
-		Message: "data berhasil dibuat",
-	})
+	resources.Success(ctx, "data berhasil dimuat", req)
 }
 func (c *JabatanDesaController) UpdateData(ctx *gin.Context) {
 
@@ -88,55 +65,41 @@ func (c *JabatanDesaController) UpdateData(ctx *gin.Context) {
 	idStr := ctx.Param("id")
 	id, err := strconv.Atoi(idStr)
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, resources.Response{
-			Message: err.Error(),
-			Status:  false,
-		})
+		resources.BadRequest(ctx, err)
 		return
 	}
 
 	if err := ctx.ShouldBindJSON(&req); err != nil {
-		ctx.JSON(http.StatusBadRequest, resources.Response{
-			Message: err.Error(),
-			Status:  false,
-		})
+		resources.BadRequest(ctx, err)
 		return
 	}
 
 	err = c.service.UpdateData(&req, uint(id))
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, resources.Response{
-			Message: err.Error(),
-			Status:  false,
-		})
+		if strings.Contains(err.Error(), "tidak ditemukan") {
+			resources.NotFound(ctx, err)
+			return
+		}
+		resources.InternalError(ctx, err)
 		return
 	}
-	ctx.JSON(http.StatusOK, resources.Response{
-		Status:  true,
-		Data:    req,
-		Message: "data berhasil diperbarui",
-	})
+	resources.Success(ctx, "data berhasil diupdate", req)
 }
 func (c *JabatanDesaController) DeleteData(ctx *gin.Context) {
 	idStr := ctx.Param("id")
 	id, err := strconv.Atoi(idStr)
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, resources.Response{
-			Message: err.Error(),
-			Status:  false,
-		})
+		resources.BadRequest(ctx, err)
 		return
 	}
 	err = c.service.DeleteData(uint(id))
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, resources.Response{
-			Message: err.Error(),
-			Status:  false,
-		})
+		if strings.Contains(err.Error(), "tidak ditemukan") {
+			resources.NotFound(ctx, err)
+			return
+		}
+		resources.InternalError(ctx, err)
 		return
 	}
-	ctx.JSON(http.StatusOK, resources.Response{
-		Status:  true,
-		Message: "data berhasil dihapus",
-	})
+	resources.Success(ctx, "data berhasil dihapus")
 }

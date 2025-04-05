@@ -20,9 +20,40 @@ func NewTahunAnggaranService() *TahunAnggaranService {
 	}
 }
 
+func (s *TahunAnggaranService) IsTahunExist(tahun string, id uint) error {
+	var count int64
+	query := s.db.
+		Model(&models.TahunAnggaran{}).
+		Where("tahun = ?", tahun)
+	if id > 0 {
+		query = query.Where("id != ?", id)
+	}
+	query.Count(&count)
+
+	if count > 0 {
+		return fmt.Errorf("tahun ini sudah digunakan")
+	}
+	return nil
+}
+func (s *TahunAnggaranService) IsExist(id uint) (models.TahunAnggaran, error) {
+	var tahun models.TahunAnggaran
+	err := s.db.
+		Where("id = ?", id).
+		First(&tahun).Error
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return tahun, fmt.Errorf("ID tidak ditemukan")
+	} else if err != nil {
+		return tahun, fmt.Errorf("gagal mencari ID")
+	}
+	return tahun, nil
+}
 func (s *TahunAnggaranService) CreateTahunAnggaran(req *requests.TahunAnggaranRequest) error {
+	err := s.IsTahunExist(req.Tahun, 0)
+	if err != nil {
+		return err
+	}
 	data := req.ToModelTahunAnggaran()
-	err := s.db.Create(&data).Error
+	err = s.db.Create(&data).Error
 	if err != nil {
 		log.Printf("Gagal membuat Kegiatan: %v", err)
 		return err
@@ -32,11 +63,16 @@ func (s *TahunAnggaranService) CreateTahunAnggaran(req *requests.TahunAnggaranRe
 	return nil
 }
 func (s *TahunAnggaranService) UpdateTahunAnggaran(req *requests.TahunAnggaranRequest, id uint) error {
-	var model models.TahunAnggaran
-	if err := s.db.First(&model, id).Error; err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return fmt.Errorf("ID %d tidak ditemukan", id)
-		}
+
+	// check model exist by id
+	model, err := s.IsExist(id)
+	if err != nil {
+		return err
+	}
+
+	// check model duplicate by tahun,id
+	err = s.IsTahunExist(req.Tahun, id)
+	if err != nil {
 		return err
 	}
 	updateData := map[string]interface{}{
@@ -46,13 +82,11 @@ func (s *TahunAnggaranService) UpdateTahunAnggaran(req *requests.TahunAnggaranRe
 	return s.db.Model(&model).Updates(updateData).Error
 }
 func (s *TahunAnggaranService) DeleteTahunAnggaran(id uint) error {
-	if err := s.db.First(&models.TahunAnggaran{}, id).Error; err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return fmt.Errorf("ID %d tidak ditemukan", id)
-		}
+	model, err := s.IsExist(id)
+	if err != nil {
 		return err
 	}
-	return s.db.Delete(&models.TahunAnggaran{}, id).Error
+	return s.db.Delete(&model, id).Error
 }
 func (s *TahunAnggaranService) GetAllTahun(offset, limit int) ([]models.TahunAnggaran, error) {
 	if offset < 0 {

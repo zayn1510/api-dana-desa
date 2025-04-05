@@ -5,7 +5,6 @@ import (
 	"apidanadesa/app/resources"
 	"apidanadesa/app/services"
 	"github.com/gin-gonic/gin"
-	"net/http"
 )
 
 type AuthUserController struct {
@@ -21,44 +20,25 @@ func NewAuthUserController() *AuthUserController {
 func (uc *AuthUserController) RegisterUser(c *gin.Context) {
 	var r requests.UserRequestCreate
 	if err := c.ShouldBindJSON(&r); err != nil {
-		c.JSON(http.StatusBadRequest, resources.Response{
-			Message: err.Error(),
-			Status:  false,
-		})
+		resources.BadRequest(c, err)
 		return
 	}
 	if err := uc.service.CreateUser(r); err != nil {
-		c.JSON(http.StatusInternalServerError, resources.Response{
-			Message: "internal server error",
-			Status:  false,
-		})
+		resources.InternalError(c, err)
 		return
 	}
-	c.JSON(http.StatusOK, resources.Response{
-		Message: "create user successfully",
-		Status:  true,
-	})
+	resources.Success(c, "user created")
 }
 func (uc *AuthUserController) Login(c *gin.Context) {
 	var r requests.UserRequestLogin
 	if err := c.ShouldBindJSON(&r); err != nil {
-		c.JSON(http.StatusBadRequest, resources.Response{
-			Message: err.Error(),
-			Status:  false,
-		})
+		resources.BadRequest(c, err)
 		return
 	}
 	token, err := uc.service.LoginUser(r)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, resources.Response{
-			Message: err.Error(),
-			Status:  false,
-		})
+		resources.InternalError(c, err)
 		return
 	}
-	c.JSON(http.StatusOK, resources.Response{
-		Message: "login successfully",
-		Status:  true,
-		Data:    token,
-	})
+	resources.Success(c, "user logged in", token)
 }

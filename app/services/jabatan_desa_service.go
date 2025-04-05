@@ -18,6 +18,18 @@ func NewJabatanDesaService() *JabatanDesaService {
 		db: config.GetDB(),
 	}
 }
+func (s *JabatanDesaService) IsExist(id uint) (models.JabatanDesa, error) {
+	var jabatan models.JabatanDesa
+	err := s.db.
+		Where("id = ?", id).
+		First(&jabatan).Error
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return jabatan, fmt.Errorf("ID tidak ditemukan")
+	} else if err != nil {
+		return jabatan, fmt.Errorf("gagal mencari ID")
+	}
+	return jabatan, nil
+}
 func (s *JabatanDesaService) GetData(offset, limit int) ([]models.JabatanDesa, error) {
 	if limit <= 0 {
 		limit = 10
@@ -36,21 +48,15 @@ func (s *JabatanDesaService) CreateData(r *requests.JabatanDesaRequest) error {
 }
 func (s *JabatanDesaService) UpdateData(r *requests.JabatanDesaRequest, id uint) error {
 	data := r.ToModelJabatan()
-	var existing models.JabatanDesa
-	if err := s.db.First(&existing, id).Error; err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return fmt.Errorf("ID %d tidak ditemukan", id)
-		}
+	existing, err := s.IsExist(id)
+	if err != nil {
 		return err
 	}
 	return s.db.Model(&existing).Updates(data).Error
 }
 func (s *JabatanDesaService) DeleteData(id uint) error {
-	var existing models.JabatanDesa
-	if err := s.db.First(&existing, id).Error; err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return fmt.Errorf("ID %d tidak ditemukan", id)
-		}
+	existing, err := s.IsExist(id)
+	if err != nil {
 		return err
 	}
 	return s.db.Delete(&existing).Error

@@ -7,6 +7,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"strconv"
+	"strings"
 )
 
 type SubBidangController struct {
@@ -23,27 +24,18 @@ func (c *SubBidangController) GetSubBidangs(ctx *gin.Context) {
 	limitStr := ctx.DefaultQuery("limit", "10")
 	page, err := strconv.Atoi(pageStr)
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, resources.Response{
-			Message: err.Error(),
-			Status:  false,
-		})
+		resources.BadRequest(ctx, err)
 		return
 	}
 	limit, err := strconv.Atoi(limitStr)
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, resources.Response{
-			Message: err.Error(),
-			Status:  false,
-		})
+		resources.BadRequest(ctx, err)
 		return
 	}
 	offset := (page - 1) * limit
 	data, err := c.service.GetAllSubBidang(offset, limit)
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, resources.Response{
-			Message: err.Error(),
-			Status:  false,
-		})
+		resources.InternalError(ctx, err)
 		return
 	}
 	message := "Data kosong"
@@ -51,36 +43,23 @@ func (c *SubBidangController) GetSubBidangs(ctx *gin.Context) {
 		message = "data berhasil dimuat"
 	}
 	response := resources.GetSubBidangResponse(data)
-	ctx.JSON(http.StatusOK, resources.Response{
-		Message: message,
-		Status:  true,
-		Data:    response,
-	})
+	resources.Success(ctx, message, response)
 
 }
 
 func (c *SubBidangController) CreateSubBidang(ctx *gin.Context) {
 	var req requests.SubBidangRequestCreate
 	if err := ctx.ShouldBindJSON(&req); err != nil {
-		ctx.JSON(http.StatusBadRequest, resources.Response{
-			Message: err.Error(),
-			Status:  false,
-		})
+		resources.BadRequest(ctx, err)
 		return
 	}
+
 	err := c.service.CreateSubBidang(&req)
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, resources.Response{
-			Message: err.Error(),
-			Status:  false,
-		})
+		resources.InternalError(ctx, err)
 		return
 	}
-	ctx.JSON(http.StatusOK, resources.Response{
-		Status:  true,
-		Data:    req,
-		Message: "data berhasil dibuat",
-	})
+	resources.Success(ctx, "data berhasil dibuat", req)
 }
 func (c *SubBidangController) UpdateSubBidang(ctx *gin.Context) {
 
@@ -88,34 +67,24 @@ func (c *SubBidangController) UpdateSubBidang(ctx *gin.Context) {
 	idStr := ctx.Param("id")
 	id, err := strconv.Atoi(idStr)
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, resources.Response{
-			Message: err.Error(),
-			Status:  false,
-		})
+		resources.BadRequest(ctx, err)
 		return
 	}
 
 	if err := ctx.ShouldBindJSON(&req); err != nil {
-		ctx.JSON(http.StatusBadRequest, resources.Response{
-			Message: err.Error(),
-			Status:  false,
-		})
+		resources.BadRequest(ctx, err)
 		return
 	}
-
 	err = c.service.UpdateSubBidang(&req, uint(id))
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, resources.Response{
-			Message: err.Error(),
-			Status:  false,
-		})
+		if strings.Contains(err.Error(), "sudah digunakan") {
+			resources.Conflict(ctx, err)
+			return
+		}
+		resources.InternalError(ctx, err)
 		return
 	}
-	ctx.JSON(http.StatusOK, resources.Response{
-		Status:  true,
-		Data:    req,
-		Message: "data berhasil diperbarui",
-	})
+	resources.Success(ctx, "data berhasil diupdate", req)
 }
 func (c *SubBidangController) DeleSubBidang(ctx *gin.Context) {
 
@@ -130,14 +99,12 @@ func (c *SubBidangController) DeleSubBidang(ctx *gin.Context) {
 	}
 	err = c.service.DeleteSubBidang(uint(id))
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, resources.Response{
-			Message: err.Error(),
-			Status:  false,
-		})
+		if strings.Contains(err.Error(), "tidak ditemukan") {
+			resources.NotFound(ctx, err)
+			return
+		}
+		resources.InternalError(ctx, err)
 		return
 	}
-	ctx.JSON(http.StatusOK, resources.Response{
-		Status:  true,
-		Message: "data berhasil dihapus",
-	})
+	resources.Success(ctx, "data berhasil dihapus")
 }

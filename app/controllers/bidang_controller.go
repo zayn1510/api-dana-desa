@@ -7,6 +7,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"strconv"
+	"strings"
 )
 
 type BidangController struct {
@@ -60,24 +61,19 @@ func (c *BidangController) SaveBidang(ctx *gin.Context) {
 	var req requests.BidangRequestCreate
 	err := ctx.ShouldBindJSON(&req)
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, resources.Response{
-			Message: err.Error(),
-			Status:  false,
-		})
+		resources.BadRequest(ctx, err)
 		return
 	}
 	err = c.service.CreateData(&req)
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, resources.Response{
-			Message: err.Error(),
-			Status:  false,
-		})
+		if strings.Contains(err.Error(), "sudah digunakan") {
+			resources.Conflict(ctx, err)
+			return
+		}
+		resources.InternalError(ctx, err)
 		return
 	}
-	ctx.JSON(http.StatusOK, resources.Response{
-		Status:  true,
-		Message: "data berhasil dibuat",
-	})
+	resources.Success(ctx, "bidang berhasil dibuat")
 }
 
 func (c *BidangController) UpdateBidang(ctx *gin.Context) {
@@ -85,55 +81,45 @@ func (c *BidangController) UpdateBidang(ctx *gin.Context) {
 	idStr := ctx.DefaultQuery("id", "0")
 	id, err := strconv.Atoi(idStr)
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, resources.Response{
-			Message: err.Error(),
-			Status:  false,
-		})
+		resources.BadRequest(ctx, err)
 		return
 	}
 
 	err = ctx.ShouldBindJSON(&req)
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, resources.Response{
-			Message: "Invalid request format",
-			Status:  false,
-		})
+		resources.BadRequest(ctx, err)
 		return
 	}
 
 	err = c.service.UpdateData(&req, uint(id))
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, resources.Response{
-			Message: err.Error(),
-			Status:  false,
-		})
+		if strings.Contains(err.Error(), "tidak ditemukan") {
+			resources.NotFound(ctx, err)
+			return
+		}
+		if strings.Contains(err.Error(), "sudah digunakan") {
+			resources.Conflict(ctx, err)
+			return
+		}
+		resources.InternalError(ctx, err)
 		return
 	}
-	ctx.JSON(http.StatusOK, resources.Response{
-		Status:  true,
-		Message: "data berhasil diupate",
-	})
+	resources.Success(ctx, "bidang berhasil dibuat")
 }
 func (c *BidangController) DeleteBidang(ctx *gin.Context) {
 	idStr := ctx.DefaultQuery("id", "0")
 	id, err := strconv.Atoi(idStr)
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, resources.Response{
-			Message: err.Error(),
-			Status:  false,
-		})
+		resources.InternalError(ctx, err)
 		return
 	}
 	err = c.service.DeleteData(uint(id))
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, resources.Response{
-			Message: err.Error(),
-			Status:  false,
-		})
+		if strings.Contains(err.Error(), "tidak ditemukan") {
+			resources.NotFound(ctx, err)
+		}
+		resources.InternalError(ctx, err)
 		return
 	}
-	ctx.JSON(http.StatusOK, resources.Response{
-		Status:  true,
-		Message: "data berhasil dihapus",
-	})
+	resources.Success(ctx, "bidang berhasil dihapus")
 }

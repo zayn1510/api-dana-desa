@@ -5,8 +5,8 @@ import (
 	"apidanadesa/app/resources"
 	"apidanadesa/app/services"
 	"github.com/gin-gonic/gin"
-	"net/http"
 	"strconv"
+	"strings"
 )
 
 type KegiatanController struct {
@@ -23,27 +23,18 @@ func (c *KegiatanController) GetKegiatans(ctx *gin.Context) {
 	limitStr := ctx.DefaultQuery("limit", "10")
 	page, err := strconv.Atoi(pageStr)
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, resources.Response{
-			Message: err.Error(),
-			Status:  false,
-		})
+		resources.BadRequest(ctx, err)
 		return
 	}
 	limit, err := strconv.Atoi(limitStr)
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, resources.Response{
-			Message: err.Error(),
-			Status:  false,
-		})
+		resources.BadRequest(ctx, err)
 		return
 	}
 	offset := (page - 1) * limit
 	data, err := c.service.GetAllKegiatan(offset, limit)
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, resources.Response{
-			Message: err.Error(),
-			Status:  false,
-		})
+		resources.InternalError(ctx, err)
 		return
 	}
 	message := "Data kosong"
@@ -51,36 +42,26 @@ func (c *KegiatanController) GetKegiatans(ctx *gin.Context) {
 		message = "data berhasil dimuat"
 	}
 	response := resources.GetKegiatanResponse(data)
-	ctx.JSON(http.StatusOK, resources.Response{
-		Message: message,
-		Status:  true,
-		Data:    response,
-	})
+	resources.Success(ctx, message, response)
 
 }
 
 func (c *KegiatanController) CreateKegiatan(ctx *gin.Context) {
 	var req requests.KegiatanRequestCreate
 	if err := ctx.ShouldBindJSON(&req); err != nil {
-		ctx.JSON(http.StatusBadRequest, resources.Response{
-			Message: err.Error(),
-			Status:  false,
-		})
+		resources.BadRequest(ctx, err)
 		return
 	}
 	err := c.service.CreateKegiatan(&req)
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, resources.Response{
-			Message: err.Error(),
-			Status:  false,
-		})
+		if strings.Contains(err.Error(), "sudah digunakan") {
+			resources.Conflict(ctx, err)
+			return
+		}
+		resources.InternalError(ctx, err)
 		return
 	}
-	ctx.JSON(http.StatusOK, resources.Response{
-		Status:  true,
-		Data:    req,
-		Message: "data berhasil dibuat",
-	})
+	resources.Success(ctx, "data berhasil dibuat", req)
 }
 func (c *KegiatanController) UpdateKegiatan(ctx *gin.Context) {
 
@@ -88,56 +69,45 @@ func (c *KegiatanController) UpdateKegiatan(ctx *gin.Context) {
 	idStr := ctx.Param("id")
 	id, err := strconv.Atoi(idStr)
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, resources.Response{
-			Message: err.Error(),
-			Status:  false,
-		})
+		resources.BadRequest(ctx, err)
 		return
 	}
 
 	if err := ctx.ShouldBindJSON(&req); err != nil {
-		ctx.JSON(http.StatusBadRequest, resources.Response{
-			Message: err.Error(),
-			Status:  false,
-		})
+		resources.BadRequest(ctx, err)
 		return
 	}
 
 	err = c.service.UpdateKegiatan(&req, uint(id))
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, resources.Response{
-			Message: err.Error(),
-			Status:  false,
-		})
+		if strings.Contains(err.Error(), "tidak ditemukan") {
+			resources.NotFound(ctx, err)
+			return
+		}
+		if strings.Contains(err.Error(), "sudah digunakan") {
+			resources.Conflict(ctx, err)
+			return
+		}
+		resources.InternalError(ctx, err)
 		return
 	}
-	ctx.JSON(http.StatusOK, resources.Response{
-		Status:  true,
-		Data:    req,
-		Message: "data berhasil diperbarui",
-	})
+	resources.Success(ctx, "data berhasil diupdate", req)
 }
 func (c *KegiatanController) DeleteKegiatan(ctx *gin.Context) {
-
 	idStr := ctx.Param("id")
 	id, err := strconv.Atoi(idStr)
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, resources.Response{
-			Message: err.Error(),
-			Status:  false,
-		})
+		resources.BadRequest(ctx, err)
 		return
 	}
 	err = c.service.DeleteKegiatan(uint(id))
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, resources.Response{
-			Message: err.Error(),
-			Status:  false,
-		})
+		if strings.Contains(err.Error(), "tidak ditemukan") {
+			resources.NotFound(ctx, err)
+			return
+		}
+		resources.InternalError(ctx, err)
 		return
 	}
-	ctx.JSON(http.StatusOK, resources.Response{
-		Status:  true,
-		Message: "data berhasil dihapus",
-	})
+	resources.Success(ctx, "data berhasil dihapus")
 }

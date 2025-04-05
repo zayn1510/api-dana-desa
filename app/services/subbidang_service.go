@@ -20,9 +20,42 @@ func NewSubBidangService() *SubBidangService {
 	}
 }
 
+func (s *SubBidangService) IsKodeExist(kode string, id uint) error {
+	var count int64
+	query := s.db.
+		Model(&models.SubBidang{}).
+		Where("kode_sub_bidang = ?", kode)
+	if id > 0 {
+		query = query.Where("id != ?", id)
+	}
+	query.Count(&count)
+
+	if count > 0 {
+		return fmt.Errorf("Kode Sub Bidang sudah digunakan")
+	}
+	return nil
+}
+func (s *SubBidangService) IsExist(id uint) (models.SubBidang, bool, error) {
+	var subBidang models.SubBidang
+	err := s.db.
+		Where("id = ?", id).
+		First(&subBidang).Error
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return subBidang, false, fmt.Errorf("ID tidak ditemukan")
+	} else if err != nil {
+		return subBidang, false, fmt.Errorf("Gagal mencari ID")
+	}
+	return subBidang, true, nil
+}
+
 func (s *SubBidangService) CreateSubBidang(req *requests.SubBidangRequestCreate) error {
+	// check kode bidang duplicate for update
+	err := s.IsKodeExist(req.KodeBidang, 0)
+	if err != nil {
+		return err
+	}
 	data := req.ToModelSubBidang()
-	err := s.db.Create(&data).Error
+	err = s.db.Create(&data).Error
 	if err != nil {
 		log.Printf("Gagal membuat SubBidang: %v", err)
 		return err
@@ -32,24 +65,34 @@ func (s *SubBidangService) CreateSubBidang(req *requests.SubBidangRequestCreate)
 	return nil
 }
 func (s *SubBidangService) UpdateSubBidang(req *requests.SubBidangRequestCreate, id uint) error {
-	var model models.SubBidang
-	if err := s.db.First(&model, id).Error; err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return fmt.Errorf("ID %d tidak ditemukan", id)
-		}
+
+	// check id exist
+	model, exist, err := s.IsExist(id)
+	if err != nil {
+		return err
+	}
+	if !exist {
+		return err
+	}
+
+	// check kode bidang duplicate for update
+	err = s.IsKodeExist(req.KodeBidang, id)
+	if err != nil {
 		return err
 	}
 	data := req.ToModelSubBidang()
 	return s.db.Model(&model).Updates(data).Error
+
 }
 func (s *SubBidangService) DeleteSubBidang(id uint) error {
-	if err := s.db.First(&models.SubBidang{}, id).Error; err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return fmt.Errorf("ID %d tidak ditemukan", id)
-		}
+	model, exist, err := s.IsExist(id)
+	if err != nil {
 		return err
 	}
-	return s.db.Delete(&models.SubBidang{}, id).Error
+	if !exist {
+		return err
+	}
+	return s.db.Delete(&model, id).Error
 }
 func (s *SubBidangService) GetAllSubBidang(offset, limit int) ([]models.SubBidang, error) {
 	if offset < 0 {
