@@ -14,3 +14,5 @@ seeder:
 	go run cmd/make.go seeder $(name)
 create-seed:
 	go run cmd/make.go create-seed $(name)
+all:
+	go run cmd/make.go all $(name)

@@ -10,6 +10,12 @@ type KelompokBelanjaDesaResource struct {
 	UpdatedAt    string `json:"updated_at"`
 	DeletedAt    string `json:"deleted_at,omitempty"`
 }
+type KelompokBelanjaCSVRow struct {
+	Keterangan string `json:"keterangan"`
+	Kode       string `json:"kode_kelompok_belanja"`
+	Row        int    `json:"row"`
+	Error      string `json:"error,omitempty"`
+}
 
 func newKelompokBelanjaResource(m models.KelompokBelanjaDesa) *KelompokBelanjaDesaResource {
 	var deletedAt string

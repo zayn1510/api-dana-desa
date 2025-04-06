@@ -61,3 +61,9 @@ func (s *JabatanDesaService) DeleteData(id uint) error {
 	}
 	return s.db.Delete(&existing).Error
 }
+
+func (s *JabatanDesaService) BulkInsert(data []models.JabatanDesa) error {
+	return s.db.Transaction(func(tx *gorm.DB) error {
+		return tx.Debug().CreateInBatches(&data, 1000).Error
+	})
+}

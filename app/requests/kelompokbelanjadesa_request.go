@@ -15,3 +15,9 @@ func (req *KelompokBelanjaDesaRequest) ToModelKelompokBelanja() *models.Kelompok
 		Keterangan: req.Keterangan,
 	}
 }
+func (req *KelompokBelanjaDesaRequest) ToModelKelompokBelanjaCsv() models.KelompokBelanjaDesa {
+	return models.KelompokBelanjaDesa{
+		Kode:       req.Kode,
+		Keterangan: req.Keterangan,
+	}
+}

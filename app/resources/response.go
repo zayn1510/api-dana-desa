@@ -1,7 +1,9 @@
 package resources
 
 import (
+	"fmt"
 	"github.com/gin-gonic/gin"
+
 	"net/http"
 )
 
@@ -38,14 +40,27 @@ func Created(ctx *gin.Context, message string, data any) {
 	})
 }
 
-func BadRequest(ctx *gin.Context, err error) {
-	ctx.JSON(http.StatusBadRequest, Response{
-		Message: err.Error(),
+func BadRequest(ctx *gin.Context, err any) {
+	response := Response{
+		Message: "validation failed",
 		Status:  false,
 		Code:    http.StatusBadRequest,
-	})
-}
+	}
 
+	switch e := err.(type) {
+	case string:
+		response.Message = e
+	case error:
+		response.Message = e.Error()
+	case map[string]string:
+		response.Message = "validation failed"
+		response.Data = e
+	default:
+		response.Message = fmt.Sprintf("%v", e)
+	}
+
+	ctx.JSON(http.StatusBadRequest, response)
+}
 func NotFound(ctx *gin.Context, err error) {
 	ctx.JSON(http.StatusNotFound, Response{
 		Message: err.Error(),

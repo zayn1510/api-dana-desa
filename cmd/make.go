@@ -30,6 +30,8 @@ func main() {
 		createRequest(name)
 	case "resource":
 		createResponse(name)
+	case "all":
+		createAll(name)
 	case "seeder":
 		createSeeder(name)
 	case "create-seed":
@@ -37,6 +39,14 @@ func main() {
 	default:
 		fmt.Println("Perintah tidak dikenal:", command)
 	}
+}
+
+func createAll(name string) {
+	createModel(name)
+	createService(name)
+	createRequest(name)
+	createResponse(name)
+	createController(name)
 }
 
 func createController(name string) {

@@ -12,6 +12,13 @@ type SubBidangResource struct {
 	UpdatedAt     string `json:"updated_at"`
 	DeletedAt     string `json:"deleted_at,omitempty"`
 }
+type SubBidangCSVRow struct {
+	IdBidang      uint   `json:"id_bidang"`
+	Keterangan    string `json:"keterangan"`
+	KodeSubBidang string `json:"kode_sub_bidang"`
+	Row           int    `json:"row"`
+	Error         string `json:"error,omitempty"`
+}
 
 func newSubBidangResource(m models.SubBidang) *SubBidangResource {
 	var deletedAt string

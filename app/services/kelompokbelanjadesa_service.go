@@ -95,3 +95,8 @@ func (s *KelompokBelanjaDesaService) GetAll(offset, limit int) ([]models.Kelompo
 	}
 	return result, nil
 }
+func (s *KelompokBelanjaDesaService) BulkInsert(data []models.KelompokBelanjaDesa) error {
+	return s.db.Transaction(func(tx *gorm.DB) error {
+		return tx.Debug().CreateInBatches(&data, 1000).Error
+	})
+}

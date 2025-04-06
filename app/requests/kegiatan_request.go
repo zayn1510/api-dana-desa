@@ -3,10 +3,10 @@ package requests
 import "apidanadesa/app/models"
 
 type KegiatanRequestCreate struct {
-	IdBidang     uint   `json:"id_bidang" binding:"required"`
-	IdSubBidang  uint   `json:"id_sub_bidang" binding:"required"`
-	Keterangan   string `json:"keterangan" binding:"required"`
-	KodeKegiatan string `json:"kode_kegiatan" binding:"required"`
+	IdBidang     uint   `json:"id_bidang" validate:"required"`
+	IdSubBidang  uint   `json:"id_sub_bidang" validate:"required"`
+	Keterangan   string `json:"keterangan" validate:"required"`
+	KodeKegiatan string `json:"kode_kegiatan" validate:"required"`
 }
 
 func (req *KegiatanRequestCreate) ToModelkegiatan() *models.Kegiatan {

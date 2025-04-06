@@ -9,6 +9,11 @@ type JabatanDesaResource struct {
 	UpdatedAt string `json:"updated_at"`
 	DeletedAt string `json:"deleted_at,omitempty"`
 }
+type JabatanCSVRow struct {
+	Jabatan string `json:"jabatan"`
+	Row     int    `json:"row"`
+	Error   string `json:"error,omitempty"`
+}
 
 func newJabatanDesaResource(m models.JabatanDesa) *JabatanDesaResource {
 	var deletedAt string

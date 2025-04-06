@@ -110,3 +110,10 @@ func (s *SubBidangService) GetAllSubBidang(offset, limit int) ([]models.SubBidan
 	}
 	return result, nil
 }
+
+// add function
+func (s *SubBidangService) BulkInsert(data []models.SubBidang) error {
+	return s.db.Transaction(func(tx *gorm.DB) error {
+		return tx.Debug().CreateInBatches(&data, 1000).Error
+	})
+}

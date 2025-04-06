@@ -92,3 +92,8 @@ func (s *BidangService) DeleteData(id uint) error {
 	}
 	return nil
 }
+func (s *BidangService) BulkInsert(data []models.Bidang) error {
+	return s.db.Transaction(func(tx *gorm.DB) error {
+		return tx.Debug().CreateInBatches(&data, 1000).Error
+	})
+}

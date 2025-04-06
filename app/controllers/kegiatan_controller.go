@@ -49,9 +49,14 @@ func (c *KegiatanController) GetKegiatans(ctx *gin.Context) {
 func (c *KegiatanController) CreateKegiatan(ctx *gin.Context) {
 	var req requests.KegiatanRequestCreate
 	if err := ctx.ShouldBindJSON(&req); err != nil {
-		resources.BadRequest(ctx, err)
+		requests.HandleBindError(ctx, err)
 		return
 	}
+	if err, validation := requests.Validate(req); err != nil {
+		resources.BadRequest(ctx, validation)
+		return
+	}
+
 	err := c.service.CreateKegiatan(&req)
 	if err != nil {
 		if strings.Contains(err.Error(), "sudah digunakan") {

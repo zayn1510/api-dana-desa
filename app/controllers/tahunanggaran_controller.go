@@ -49,7 +49,11 @@ func (c *TahunAnggaranController) GetData(ctx *gin.Context) {
 func (c *TahunAnggaranController) CreateData(ctx *gin.Context) {
 	var req requests.TahunAnggaranRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
-		resources.BadRequest(ctx, err)
+		requests.HandleBindError(ctx, err)
+		return
+	}
+	if err, validation := requests.Validate(req); err != nil {
+		resources.BadRequest(ctx, validation)
 		return
 	}
 	err := c.service.CreateTahunAnggaran(&req)

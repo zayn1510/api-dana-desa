@@ -24,6 +24,7 @@ func SetUpRouterBidang(api *gin.RouterGroup) {
 	bidang.POST("/", c.SaveBidang)
 	bidang.PUT("/", c.UpdateBidang)
 	bidang.DELETE("/", c.DeleteBidang)
+	bidang.POST("/import-csv", c.ImportDataCsv)
 }
 
 func SetUpRouterSubBidang(e *gin.RouterGroup) {
@@ -34,6 +35,7 @@ func SetUpRouterSubBidang(e *gin.RouterGroup) {
 	group.POST("/", c.CreateSubBidang)
 	group.PUT("/:id", c.UpdateSubBidang)
 	group.DELETE("/:id", c.DeleSubBidang)
+	group.POST("/import-csv", c.ImportDataCsv)
 }
 func SetUpRouterKegiatan(e *gin.RouterGroup) {
 	c := controllers.NewKegiatanController()
@@ -67,12 +69,23 @@ func SetUpRouterJabatanDesa(e *gin.RouterGroup) {
 	group.POST("/", c.CreateData)
 	group.PUT("/:id", c.UpdateData)
 	group.DELETE("/:id", c.DeleteData)
+	group.POST("/import-csv", c.ImportDataCsv)
 }
 func SetUpRouterKelompokBelanjaDesa(e *gin.RouterGroup) {
 	c := controllers.NewControllerKelompokBelanja()
 	group := e.Group("/kelompok-belanja-desa")
 	group.Use(middleware.JWTMiddleware())
 	group.GET("/", c.GetData)
+	group.POST("/", c.CreateData)
+	group.PUT("/:id", c.UpdateData)
+	group.DELETE("/:id", c.DeleteData)
+	group.POST("/import-csv", c.ImportDataCsv)
+}
+func SetUpRouterJenisBelanjaDesa(e *gin.RouterGroup) {
+	c := controllers.NewControllerJenisBelanja()
+	group := e.Group("/jenis-belanja-desa")
+	group.Use(middleware.JWTMiddleware())
+	group.GET("/", c.GetAll)
 	group.POST("/", c.CreateData)
 	group.PUT("/:id", c.UpdateData)
 	group.DELETE("/:id", c.DeleteData)
@@ -86,4 +99,5 @@ func RegisterRoutes(r *gin.Engine) {
 	SetUpRouterAuth(api)
 	SetUpRouterJabatanDesa(api)
 	SetUpRouterKelompokBelanjaDesa(api)
+	SetUpRouterJenisBelanjaDesa(api)
 }
