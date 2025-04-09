@@ -9,31 +9,31 @@ import (
 	"gorm.io/gorm"
 )
 
-type JenisBelanjaDesaService struct {
+type ObjekBelanjaDesaService struct {
 	db *gorm.DB
 }
 
-func NewJenisBelanjaDesaService() *JenisBelanjaDesaService {
-	return &JenisBelanjaDesaService{
+func NewObjekBelanjaDesaService() *ObjekBelanjaDesaService {
+	return &ObjekBelanjaDesaService{
 		db: config.GetDB(),
 	}
 }
 
-func (s *JenisBelanjaDesaService) IsKodeExist(kode string, id uint) error {
+func (s *ObjekBelanjaDesaService) IsKodeExist(kode string, id uint) error {
 	var count int64
-	query := s.db.Model(&models.JenisBelanjaDesa{}).Where("kode=?", kode)
+	query := s.db.Model(&models.ObjekBelanjaDesa{}).Where("kode=?", kode)
 	if id > 0 {
-		query.Where("id !=?", id)
+		query.Where("id!=?", id)
 	}
 	query.Count(&count)
 	if count > 0 {
-		return fmt.Errorf("kode jenis belanja sudah digunakan")
+		return fmt.Errorf("kode objek belanja sudah digunakan")
 	}
 	return nil
 }
 
-func (s *JenisBelanjaDesaService) IsExist(id uint) (models.JenisBelanjaDesa, error) {
-	var j models.JenisBelanjaDesa
+func (s *ObjekBelanjaDesaService) IsExist(id uint) (models.ObjekBelanjaDesa, error) {
+	var j models.ObjekBelanjaDesa
 	err := s.db.Where("id=?", id).First(&j).Error
 	if errors.Is(err, gorm.ErrRecordNotFound) {
 		return j, fmt.Errorf("ID tidak ditemukan")
@@ -43,13 +43,13 @@ func (s *JenisBelanjaDesaService) IsExist(id uint) (models.JenisBelanjaDesa, err
 	return j, nil
 }
 
-func (s *JenisBelanjaDesaService) Create(req *requests.JenisBelanjaDesaRequest) error {
+func (s *ObjekBelanjaDesaService) Create(req *requests.ObjekBelanjaDesaRequest) error {
 	// check data duplicate by kode,id
 	duplicate := s.IsKodeExist(req.Kode, 0)
 	if duplicate != nil {
 		return duplicate
 	}
-	data := req.ToModelJenisBelanja()
+	data := req.ToModelObjekBelanja()
 	err := s.db.Create(data).Error
 	if err != nil {
 		return err
@@ -57,7 +57,7 @@ func (s *JenisBelanjaDesaService) Create(req *requests.JenisBelanjaDesaRequest) 
 	return nil
 }
 
-func (s *JenisBelanjaDesaService) Update(id uint, req *requests.JenisBelanjaDesaRequest) error {
+func (s *ObjekBelanjaDesaService) Update(id uint, req *requests.ObjekBelanjaDesaRequest) error {
 	// check data exist by id
 	model, exist := s.IsExist(id)
 	if exist != nil {
@@ -69,14 +69,14 @@ func (s *JenisBelanjaDesaService) Update(id uint, req *requests.JenisBelanjaDesa
 	if duplicate != nil {
 		return duplicate
 	}
-	data := req.ToModelJenisBelanja()
+	data := req.ToModelObjekBelanja()
 	err := s.db.Model(&model).Updates(data).Error
 	if err != nil {
 		return err
 	}
 	return nil
 }
-func (s *JenisBelanjaDesaService) Delete(id uint) error {
+func (s *ObjekBelanjaDesaService) Delete(id uint) error {
 	// check data exist by id
 	model, exist := s.IsExist(id)
 	if exist != nil {
@@ -89,9 +89,12 @@ func (s *JenisBelanjaDesaService) Delete(id uint) error {
 	return nil
 }
 
-func (s *JenisBelanjaDesaService) GetData(offset, limit int) ([]models.JenisBelanjaDesa, error) {
-	var result []models.JenisBelanjaDesa
-	err := s.db.Offset(offset).Limit(limit).Preload("KelompokBelanjaDesa").Find(&result).Error
+func (s *ObjekBelanjaDesaService) GetData(offset, limit int) ([]models.ObjekBelanjaDesa, error) {
+	var result []models.ObjekBelanjaDesa
+	err := s.db.Offset(offset).Limit(limit).
+		Preload("KelompokBelanjaDesa").
+		Preload("JenisBelanjaDesa").
+		Find(&result).Error
 	if err != nil {
 		return nil, err
 	}

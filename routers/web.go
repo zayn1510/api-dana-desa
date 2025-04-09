@@ -90,6 +90,16 @@ func SetUpRouterJenisBelanjaDesa(e *gin.RouterGroup) {
 	group.PUT("/:id", c.UpdateData)
 	group.DELETE("/:id", c.DeleteData)
 }
+
+func SetUpRouterObjekBelanjaDesa(e *gin.RouterGroup) {
+	c := controllers.NewControllerObjekBelanjaDesa()
+	group := e.Group("/objek-belanja-desa")
+	group.Use(middleware.JWTMiddleware())
+	group.GET("/", c.GetAll)
+	group.POST("/", c.CreateData)
+	group.PUT("/:id", c.UpdateData)
+	group.DELETE("/:id", c.DeleteData)
+}
 func RegisterRoutes(r *gin.Engine) {
 	api := r.Group("/api/v1")
 	SetUpRouterBidang(api)
@@ -100,4 +110,5 @@ func RegisterRoutes(r *gin.Engine) {
 	SetUpRouterJabatanDesa(api)
 	SetUpRouterKelompokBelanjaDesa(api)
 	SetUpRouterJenisBelanjaDesa(api)
+	SetUpRouterObjekBelanjaDesa(api)
 }
