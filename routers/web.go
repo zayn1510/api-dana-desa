@@ -16,6 +16,10 @@ func setUpRouterPing(router *gin.Engine) {
 	router.GET("/bidangs", controllers.NewControllerBidang().GetAllBidangs)
 
 }
+
+// SetUpRouterBidang sets up the routing group for the "Bidang" master data.
+// It includes endpoints for retrieving, creating, updating, deleting, and importing data from a CSV file.
+
 func SetUpRouterBidang(api *gin.RouterGroup) {
 	c := controllers.NewControllerBidang()
 	bidang := api.Group("/bidang")
@@ -61,6 +65,9 @@ func SetUpRouterAuth(e *gin.RouterGroup) {
 	group.POST("/register", c.RegisterUser)
 	group.POST("/login", c.Login)
 }
+
+// SetUpRouterJabatanDesa sets up the routing group for the "Jabatan Desa" (Village Position) master data.
+// It includes endpoints for retrieving, creating, updating, deleting, and importing data from a CSV file.
 func SetUpRouterJabatanDesa(e *gin.RouterGroup) {
 	c := controllers.NewControllerJabatanDesa()
 	group := e.Group("/jabatan-desa")
@@ -71,6 +78,9 @@ func SetUpRouterJabatanDesa(e *gin.RouterGroup) {
 	group.DELETE("/:id", c.DeleteData)
 	group.POST("/import-csv", c.ImportDataCsv)
 }
+
+// master data belanja
+
 func SetUpRouterKelompokBelanjaDesa(e *gin.RouterGroup) {
 	c := controllers.NewControllerKelompokBelanja()
 	group := e.Group("/kelompok-belanja-desa")
@@ -100,6 +110,19 @@ func SetUpRouterObjekBelanjaDesa(e *gin.RouterGroup) {
 	group.PUT("/:id", c.UpdateData)
 	group.DELETE("/:id", c.DeleteData)
 }
+
+// master data pendapatan
+
+func SetUpRouterKelompokPendapatanDesa(e *gin.RouterGroup) {
+	c := controllers.NewKelompokPendapatanController()
+	group := e.Group("/kelompok-pendapatan-desa")
+	group.Use(middleware.JWTMiddleware())
+	group.GET("/", c.GetData)
+	group.POST("/", c.CreateData)
+	group.PUT("/:id", c.UpdateData)
+	group.DELETE("/:id", c.DeleteData)
+	group.POST("/import-csv", c.ImportDataCsv)
+}
 func RegisterRoutes(r *gin.Engine) {
 	api := r.Group("/api/v1")
 	SetUpRouterBidang(api)
@@ -111,4 +134,5 @@ func RegisterRoutes(r *gin.Engine) {
 	SetUpRouterKelompokBelanjaDesa(api)
 	SetUpRouterJenisBelanjaDesa(api)
 	SetUpRouterObjekBelanjaDesa(api)
+	SetUpRouterKelompokPendapatanDesa(api)
 }

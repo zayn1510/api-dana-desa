@@ -53,7 +53,7 @@ func (s *KelompokBelanjaDesaService) CreateData(req *requests.KelompokBelanjaDes
 		return duplicate
 	}
 	data := req.ToModelKelompokBelanja()
-	err := s.db.Create(&data).Error
+	err := s.db.Create(data).Error
 	if err != nil {
 		log.Printf("Gagal membuat Kelompok Belanja Desa: %v", err)
 		return err
