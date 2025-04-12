@@ -123,6 +123,16 @@ func SetUpRouterKelompokPendapatanDesa(e *gin.RouterGroup) {
 	group.DELETE("/:id", c.DeleteData)
 	group.POST("/import-csv", c.ImportDataCsv)
 }
+
+func SetUpRouterJenisPendapatanDesa(e *gin.RouterGroup) {
+	c := controllers.NewControllerJenisPendapatan()
+	group := e.Group("/jenis-pendapatan-desa")
+	group.Use(middleware.JWTMiddleware())
+	group.GET("/", c.GetAll)
+	group.POST("/", c.CreateData)
+	group.PUT("/:id", c.UpdateData)
+	group.DELETE("/:id", c.DeleteData)
+}
 func RegisterRoutes(r *gin.Engine) {
 	api := r.Group("/api/v1")
 	SetUpRouterBidang(api)
@@ -135,4 +145,5 @@ func RegisterRoutes(r *gin.Engine) {
 	SetUpRouterJenisBelanjaDesa(api)
 	SetUpRouterObjekBelanjaDesa(api)
 	SetUpRouterKelompokPendapatanDesa(api)
+	SetUpRouterJenisPendapatanDesa(api)
 }
