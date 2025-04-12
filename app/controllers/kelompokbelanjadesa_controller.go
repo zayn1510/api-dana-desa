@@ -8,70 +8,59 @@ import (
 	"encoding/csv"
 	"github.com/gin-gonic/gin"
 	"mime/multipart"
-	"net/http"
 	"strconv"
 	"strings"
 )
 
-type BidangController struct {
-	service *services.BidangService
+type KelompokBelanjaDesaController struct {
+	service *services.KelompokBelanjaDesaService
 }
 
-func NewControllerBidang() *BidangController {
-	return &BidangController{
-		service: services.NewBidangService(),
+func NewControllerKelompokBelanja() *KelompokBelanjaDesaController {
+	return &KelompokBelanjaDesaController{
+		service: services.NewKelompokBelanjaService(),
 	}
 }
-
-func (c *BidangController) GetAllBidangs(ctx *gin.Context) {
-
+func (c *KelompokBelanjaDesaController) GetData(ctx *gin.Context) {
 	pageStr := ctx.DefaultQuery("page", "1")
 	limitStr := ctx.DefaultQuery("limit", "10")
-
 	page, err := strconv.Atoi(pageStr)
-	if err != nil || page <= 0 {
-		page = 1
-	}
-
-	limit, err := strconv.Atoi(limitStr)
-	if err != nil || limit <= 0 {
-		limit = 10
-	}
-
-	// Calculate offset for pagination
-	offset := (page - 1) * limit
-	data, err := c.service.GetData(offset, limit)
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, resources.Response{
-			Message: err.Error(),
-			Status:  false,
-		})
+		resources.BadRequest(ctx, err)
 		return
 	}
-	message := "data berhasil dimuats"
-	if len(data) == 0 {
-		message = "Data kosong"
+	limit, err := strconv.Atoi(limitStr)
+	if err != nil {
+		resources.BadRequest(ctx, err)
+		return
 	}
-	bidang := resources.GetBidangResource(data)
-	ctx.JSON(http.StatusOK, resources.Response{
-		Status:  true,
-		Message: message,
-		Data:    bidang,
-	})
+	offset := (page - 1) * limit
+	data, err := c.service.GetAll(offset, limit)
+	if err != nil {
+		resources.InternalError(ctx, err)
+		return
+	}
+	message := "Data kosong"
+	if len(data) > 0 {
+		message = "data berhasil dimuat"
+	}
+	response := resources.GetResponseKelompokBelanja(data)
+	resources.Success(ctx, message, response)
+
 }
 
-func (c *BidangController) SaveBidang(ctx *gin.Context) {
-	var req requests.BidangRequestCreate
+func (c *KelompokBelanjaDesaController) CreateData(ctx *gin.Context) {
+	var req requests.KelompokBelanjaDesaRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		requests.HandleBindError(ctx, err)
 		return
 	}
-
-	if err, validationErrors := requests.Validate(req); err != nil {
-		resources.BadRequest(ctx, validationErrors)
+	if err, validation := requests.Validate(req); err != nil {
+		resources.BadRequest(ctx, validation)
 		return
 	}
-	if err := c.service.CreateData(&req); err != nil {
+	err := c.service.CreateData(&req)
+	if err != nil {
 		if strings.Contains(err.Error(), "sudah digunakan") {
 			resources.Conflict(ctx, err)
 			return
@@ -79,24 +68,22 @@ func (c *BidangController) SaveBidang(ctx *gin.Context) {
 		resources.InternalError(ctx, err)
 		return
 	}
-	resources.Success(ctx, "bidang berhasil dibuat")
+	resources.Created(ctx, "data berhasil dibuat", req)
 }
+func (c *KelompokBelanjaDesaController) UpdateData(ctx *gin.Context) {
 
-func (c *BidangController) UpdateBidang(ctx *gin.Context) {
-	var req requests.BidangRequestCreate
-	idStr := ctx.DefaultQuery("id", "0")
+	var req requests.KelompokBelanjaDesaRequest
+	idStr := ctx.Param("id")
 	id, err := strconv.Atoi(idStr)
 	if err != nil {
 		resources.BadRequest(ctx, err)
 		return
 	}
 
-	err = ctx.ShouldBindJSON(&req)
-	if err != nil {
+	if err := ctx.ShouldBindJSON(&req); err != nil {
 		resources.BadRequest(ctx, err)
 		return
 	}
-
 	err = c.service.UpdateData(&req, uint(id))
 	if err != nil {
 		if strings.Contains(err.Error(), "tidak ditemukan") {
@@ -110,29 +97,28 @@ func (c *BidangController) UpdateBidang(ctx *gin.Context) {
 		resources.InternalError(ctx, err)
 		return
 	}
-	resources.Success(ctx, "bidang berhasil dibuat")
+	resources.Success(ctx, "data berhasil diupdate", req)
 }
-func (c *BidangController) DeleteBidang(ctx *gin.Context) {
-	idStr := ctx.DefaultQuery("id", "0")
+func (c *KelompokBelanjaDesaController) DeleteData(ctx *gin.Context) {
+	idStr := ctx.Param("id")
 	id, err := strconv.Atoi(idStr)
 	if err != nil {
-		resources.InternalError(ctx, err)
+		resources.BadRequest(ctx, err)
 		return
 	}
 	err = c.service.DeleteData(uint(id))
 	if err != nil {
 		if strings.Contains(err.Error(), "tidak ditemukan") {
 			resources.NotFound(ctx, err)
+			return
 		}
 		resources.InternalError(ctx, err)
 		return
 	}
-	resources.Success(ctx, "bidang berhasil dihapus")
+	resources.Success(ctx, "data berhasil dibuat")
 }
 
-// add function
-
-func (c *BidangController) ImportDataCsv(ctx *gin.Context) {
+func (c *KelompokBelanjaDesaController) ImportDataCsv(ctx *gin.Context) {
 	file, err := ctx.FormFile("file")
 	actionStr := ctx.DefaultQuery("action", "0")
 	action, err := strconv.Atoi(actionStr)
@@ -176,25 +162,26 @@ func (c *BidangController) ImportDataCsv(ctx *gin.Context) {
 		resources.BadRequest(ctx, "Invalid CSV format")
 		return
 	}
-	var preview []resources.BidangCSVRow
-	var validModels []models.Bidang
-	var failedRows []resources.BidangCSVRow
+	var preview []resources.KelompokBelanjaCSVRow
+	var validModels []models.KelompokBelanjaDesa
+	var failedRows []resources.KelompokBelanjaCSVRow
 
 	for index, record := range records {
 		if index == 0 {
 			continue
 		}
 		if len(record) < 2 {
-			preview = append(preview, resources.BidangCSVRow{
+			preview = append(preview, resources.KelompokBelanjaCSVRow{
 				Keterangan: "",
-				KodeBidang: "",
+				Kode:       "",
 				Row:        index,
 				Error:      "Incomplete row",
 			})
 		}
-		data := requests.BidangRequestCreate{
+
+		data := requests.KelompokBelanjaDesaRequest{
+			Kode:       strings.TrimSpace(record[0]),
 			Keterangan: strings.TrimSpace(record[1]),
-			KodeBidang: strings.TrimSpace(record[0]),
 		}
 
 		_, validationErrs := requests.Validate(data)
@@ -204,29 +191,29 @@ func (c *BidangController) ImportDataCsv(ctx *gin.Context) {
 				errMsg = msg
 				break
 			}
-			failedRows = append(failedRows, resources.BidangCSVRow{
+			failedRows = append(failedRows, resources.KelompokBelanjaCSVRow{
 				Keterangan: data.Keterangan,
-				KodeBidang: data.KodeBidang,
+				Kode:       data.Kode,
 				Row:        index,
 				Error:      errMsg,
 			})
 			continue
 		}
 
-		if err := c.service.IsKodeExist(data.KodeBidang, 0); err != nil {
-			failedRows = append(failedRows, resources.BidangCSVRow{
+		if err := c.service.IsKodeExist(data.Kode, 0); err != nil {
+			failedRows = append(failedRows, resources.KelompokBelanjaCSVRow{
 				Keterangan: data.Keterangan,
-				KodeBidang: data.KodeBidang,
+				Kode:       data.Kode,
 				Row:        index,
-				Error:      err.Error(),
+				Error:      errMsg,
 			})
 			continue
 		}
-		validModels = append(validModels, data.ToModelCsv())
+		validModels = append(validModels, data.ToModelKelompokBelanjaCsv())
 
-		preview = append(preview, resources.BidangCSVRow{
+		preview = append(preview, resources.KelompokBelanjaCSVRow{
 			Keterangan: data.Keterangan,
-			KodeBidang: data.KodeBidang,
+			Kode:       data.Kode,
 			Row:        index,
 			Error:      errMsg,
 		})

@@ -10,6 +10,12 @@ type BidangResource struct {
 	UpdatedAt  string `json:"updated_at"`
 	DeletedAt  string `json:"deleted_at,omitempty"`
 }
+type BidangCSVRow struct {
+	Keterangan string `json:"keterangan"`
+	KodeBidang string `json:"kode_bidang"`
+	Row        int    `json:"row"`
+	Error      string `json:"error,omitempty"`
+}
 
 func NewBidangResource(m models.Bidang) *BidangResource {
 	var deletedAt string

@@ -30,6 +30,8 @@ func main() {
 		createRequest(name)
 	case "resource":
 		createResponse(name)
+	case "all":
+		createAll(name)
 	case "seeder":
 		createSeeder(name)
 	case "create-seed":
@@ -37,6 +39,14 @@ func main() {
 	default:
 		fmt.Println("Perintah tidak dikenal:", command)
 	}
+}
+
+func createAll(name string) {
+	createModel(name)
+	createService(name)
+	createRequest(name)
+	createResponse(name)
+	createController(name)
 }
 
 func createController(name string) {
@@ -410,13 +420,9 @@ func AddingMethod(rootPackage, modelName string) {
 		return
 	}
 	mainCode := string(content)
-	importStatement := fmt.Sprintf(`	"%s/app/models"`, rootPackage)
 	migrationImport := fmt.Sprintf(`"%s/app/migrations"`, rootPackage)
 
 	if strings.Contains(mainCode, "import (") {
-		if !strings.Contains(mainCode, importStatement) {
-			mainCode = strings.Replace(mainCode, "import (", "import (\n"+importStatement, 1)
-		}
 		if !strings.Contains(mainCode, migrationImport) {
 			mainCode = strings.Replace(mainCode, "import (", "import (\n"+migrationImport, 1)
 		}
@@ -426,7 +432,7 @@ func AddingMethod(rootPackage, modelName string) {
 			endImportIdx := strings.Index(mainCode[lastImportIdx:], "\n")
 			if endImportIdx != -1 {
 				insertPos := lastImportIdx + endImportIdx
-				mainCode = mainCode[:insertPos] + "\n" + importStatement + "\n" + migrationImport + mainCode[insertPos:]
+				mainCode = mainCode[:insertPos] + "\n" + migrationImport + mainCode[insertPos:]
 			}
 		}
 	}
