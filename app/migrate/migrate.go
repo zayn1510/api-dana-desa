@@ -25,6 +25,7 @@ func main() {
 		generateObjekBelanjaDesa(db)
 		generateKelompokPendapatan(db)
 		generateJenisPendapatan(db)
+		generateObjekPendapatan(db)
 	fmt.Println("Semua migrasi selesai!")
 }
 
@@ -109,4 +110,11 @@ func generateJenisPendapatan(db *gorm.DB) {
 			log.Fatalf("Gagal migrasi JenisPendapatan: %v", err)
 		}
 		fmt.Println("Migrasi JenisPendapatan selesai.")
+}
+func generateObjekPendapatan(db *gorm.DB) {
+		fmt.Println("Migrasi tabel ObjekPendapatan...")
+		if err := migrations.MigrateObjekPendapatan(db); err != nil {
+			log.Fatalf("Gagal migrasi ObjekPendapatan: %v", err)
+		}
+		fmt.Println("Migrasi ObjekPendapatan selesai.")
 }
