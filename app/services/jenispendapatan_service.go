@@ -19,15 +19,15 @@ func NewJenisPendapatanService() *JenisPendapatanService {
 	}
 }
 
-func (s *JenisPendapatanService) IsKodeExist(kode string, id uint) error {
+func (s *JenisPendapatanService) IsKodeExist(kode string, id, id_kelompok uint) error {
 	var count int64
-	query := s.db.Model(&models.JenisPendapatan{}).Where("kode=?", kode)
+	query := s.db.Model(&models.JenisPendapatan{}).Where("kode=?", kode).Where("id_kelompok=?", id_kelompok)
 	if id > 0 {
 		query.Where("id !=?", id)
 	}
 	query.Count(&count)
 	if count > 0 {
-		return fmt.Errorf("kode jenis pendapatan sudah digunakan")
+		return fmt.Errorf("kode jenis pendapatan sudah digunakan pada id kelompok")
 	}
 	return nil
 }
@@ -45,7 +45,7 @@ func (s *JenisPendapatanService) IsExist(id uint) (models.JenisPendapatan, error
 
 func (s *JenisPendapatanService) Create(req *requests.JenisPendapatanRequest) error {
 	// check data duplicate by kode,id
-	duplicate := s.IsKodeExist(req.Kode, 0)
+	duplicate := s.IsKodeExist(req.Kode, 0, req.IdKelompok)
 	if duplicate != nil {
 		return duplicate
 	}
@@ -65,7 +65,7 @@ func (s *JenisPendapatanService) Update(id uint, req *requests.JenisPendapatanRe
 	}
 
 	// check data duplicate by kode and id
-	duplicate := s.IsKodeExist(req.Kode, id)
+	duplicate := s.IsKodeExist(req.Kode, id, req.IdKelompok)
 	if duplicate != nil {
 		return duplicate
 	}

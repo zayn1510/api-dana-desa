@@ -19,9 +19,10 @@ func NewObjekBelanjaDesaService() *ObjekBelanjaDesaService {
 	}
 }
 
-func (s *ObjekBelanjaDesaService) IsKodeExist(kode string, id uint) error {
+func (s *ObjekBelanjaDesaService) IsKodeExist(kode string, id, id_kelompok, id_jenis uint) error {
 	var count int64
-	query := s.db.Model(&models.ObjekBelanjaDesa{}).Where("kode=?", kode)
+	query := s.db.Model(&models.ObjekBelanjaDesa{}).Where("kode=?", kode).
+		Where("id_kelompok=?", id_kelompok).Where("id_jenis=?", id_jenis)
 	if id > 0 {
 		query.Where("id!=?", id)
 	}
@@ -45,7 +46,7 @@ func (s *ObjekBelanjaDesaService) IsExist(id uint) (models.ObjekBelanjaDesa, err
 
 func (s *ObjekBelanjaDesaService) Create(req *requests.ObjekBelanjaDesaRequest) error {
 	// check data duplicate by kode,id
-	duplicate := s.IsKodeExist(req.Kode, 0)
+	duplicate := s.IsKodeExist(req.Kode, 0, req.IdKelompok, req.IdJenis)
 	if duplicate != nil {
 		return duplicate
 	}
@@ -65,7 +66,7 @@ func (s *ObjekBelanjaDesaService) Update(id uint, req *requests.ObjekBelanjaDesa
 	}
 
 	// check data duplicate by kode and id
-	duplicate := s.IsKodeExist(req.Kode, id)
+	duplicate := s.IsKodeExist(req.Kode, id, req.IdKelompok, req.IdJenis)
 	if duplicate != nil {
 		return duplicate
 	}

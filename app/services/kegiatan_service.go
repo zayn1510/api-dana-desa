@@ -20,18 +20,20 @@ func NewKegiatanService() *KegiatanService {
 	}
 }
 
-func (s *KegiatanService) IsKodeExist(kode string, id uint) error {
+func (s *KegiatanService) IsKodeExist(kode string, id, id_bidang, id_sub_bidang uint) error {
 	var count int64
 	query := s.db.
 		Model(&models.Kegiatan{}).
-		Where("kode_kegiatan = ?", kode)
+		Where("kode_kegiatan = ?", kode).
+		Where("id_bidang = ?", id_bidang).
+		Where("id_sub_bidang = ?", id_sub_bidang)
 	if id > 0 {
 		query = query.Where("id != ?", id)
 	}
 	query.Count(&count)
 
 	if count > 0 {
-		return fmt.Errorf("kode Kegiatan sudah digunakan")
+		return fmt.Errorf("kode Kegiatan sudah digunakan pada id bidang dan sub bidang")
 	}
 	return nil
 }
@@ -48,7 +50,7 @@ func (s *KegiatanService) IsExist(id uint) (models.Kegiatan, error) {
 	return subBidang, nil
 }
 func (s *KegiatanService) CreateKegiatan(req *requests.KegiatanRequestCreate) error {
-	err := s.IsKodeExist(req.KodeKegiatan, 0)
+	err := s.IsKodeExist(req.KodeKegiatan, 0, req.IdBidang, req.IdSubBidang)
 	if err != nil {
 		return err
 	}
@@ -70,7 +72,7 @@ func (s *KegiatanService) UpdateKegiatan(req *requests.KegiatanRequestCreate, id
 		return err
 	}
 	// check model duplicate by kode,id
-	err = s.IsKodeExist(req.KodeKegiatan, id)
+	err = s.IsKodeExist(req.KodeKegiatan, id, req.IdBidang, req.IdSubBidang)
 	if err != nil {
 		return err
 	}

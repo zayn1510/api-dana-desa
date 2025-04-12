@@ -205,7 +205,7 @@ func (c *SubBidangController) ImportDataCsv(ctx *gin.Context) {
 			continue
 		}
 
-		if err := c.service.IsKodeExist(data.KodeBidang, 0); err != nil {
+		if err := c.service.IsKodeExist(data.KodeBidang, 0, data.IdBidang); err != nil {
 			failedRows = append(failedRows, resources.SubBidangCSVRow{
 				IdBidang:      uint(IdBidang),
 				Keterangan:    data.Keterangan,

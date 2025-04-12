@@ -20,13 +20,14 @@ func NewSubBidangService() *SubBidangService {
 	}
 }
 
-func (s *SubBidangService) IsKodeExist(kode string, id uint) error {
+func (s *SubBidangService) IsKodeExist(kode string, id, id_bidang uint) error {
 	var count int64
 	query := s.db.
 		Model(&models.SubBidang{}).
-		Where("kode_sub_bidang = ?", kode)
+		Where("kode_sub_bidang = ?", kode).
+		Where("id_bidang = ?", id_bidang)
 	if id > 0 {
-		query = query.Where("id != ?", id)
+		query = query.Where("id != ?", id_bidang)
 	}
 	query.Count(&count)
 
@@ -50,7 +51,7 @@ func (s *SubBidangService) IsExist(id uint) (models.SubBidang, bool, error) {
 
 func (s *SubBidangService) CreateSubBidang(req *requests.SubBidangRequestCreate) error {
 	// check kode bidang duplicate for update
-	err := s.IsKodeExist(req.KodeBidang, 0)
+	err := s.IsKodeExist(req.KodeBidang, 0, req.IdBidang)
 	if err != nil {
 		return err
 	}
@@ -76,7 +77,7 @@ func (s *SubBidangService) UpdateSubBidang(req *requests.SubBidangRequestCreate,
 	}
 
 	// check kode bidang duplicate for update
-	err = s.IsKodeExist(req.KodeBidang, id)
+	err = s.IsKodeExist(req.KodeBidang, id, req.IdBidang)
 	if err != nil {
 		return err
 	}
