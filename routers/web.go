@@ -3,17 +3,41 @@ package routers
 import (
 	"apidanadesa/app/controllers"
 	"apidanadesa/app/middleware"
+	"apidanadesa/app/models"
+	"apidanadesa/config"
 	"github.com/gin-gonic/gin"
 )
 
-func setUpRouterPing(router *gin.Engine) {
-	router.GET("/ping", func(c *gin.Context) {
+func setUpRouterPing(router *gin.RouterGroup) {
+
+	welcome := router.Group("/welcome")
+	welcome.GET("/", func(c *gin.Context) {
 		c.JSON(200, gin.H{
-			"message": "bidang",
+			"message": "welcome to apidanadesa",
 		})
 	})
+	welcome.GET("/testdb", func(c *gin.Context) {
+		db := config.GetDB()
+		if db == nil {
+			c.JSON(500, gin.H{
+				"error": "Database tidak terkoneksi",
+			})
+			return
+		}
 
-	router.GET("/bidangs", controllers.NewControllerBidang().GetAllBidangs)
+		var result []models.Bidang
+		err := db.Offset(0).Limit(10).Find(&result).Error
+		if err != nil {
+			c.JSON(500, gin.H{
+				"error": err.Error(),
+			})
+			return
+		}
+
+		c.JSON(200, gin.H{
+			"message": result,
+		})
+	})
 
 }
 
@@ -22,46 +46,46 @@ func setUpRouterPing(router *gin.Engine) {
 
 func SetUpRouterBidang(api *gin.RouterGroup) {
 	c := controllers.NewControllerBidang()
-	bidang := api.Group("/bidang")
+	bidang := api.Group("bidang")
 	bidang.Use(middleware.JWTMiddleware())
-	bidang.GET("/", c.GetAllBidangs)
-	bidang.POST("/", c.SaveBidang)
-	bidang.PUT("/", c.UpdateBidang)
+	bidang.GET("", c.GetAllBidangs)
+	bidang.POST("", c.SaveBidang)
+	bidang.PUT("", c.UpdateBidang)
 	bidang.DELETE("/", c.DeleteBidang)
 	bidang.POST("/import-csv", c.ImportDataCsv)
 }
 
 func SetUpRouterSubBidang(e *gin.RouterGroup) {
 	c := controllers.NewSubBidangController()
-	group := e.Group("/sub-bidang")
+	group := e.Group("sub-bidang")
 	group.Use(middleware.JWTMiddleware())
-	group.GET("/", c.GetSubBidangs)
-	group.POST("/", c.CreateSubBidang)
+	group.GET("", c.GetSubBidangs)
+	group.POST("", c.CreateSubBidang)
 	group.PUT("/:id", c.UpdateSubBidang)
 	group.DELETE("/:id", c.DeleSubBidang)
 	group.POST("/import-csv", c.ImportDataCsv)
 }
 func SetUpRouterKegiatan(e *gin.RouterGroup) {
 	c := controllers.NewKegiatanController()
-	group := e.Group("/kegiatan")
+	group := e.Group("kegiatan")
 	group.Use(middleware.JWTMiddleware())
-	group.GET("/", c.GetKegiatans)
-	group.POST("/", c.CreateKegiatan)
+	group.GET("", c.GetKegiatans)
+	group.POST("", c.CreateKegiatan)
 	group.PUT("/:id", c.UpdateKegiatan)
 	group.DELETE("/:id", c.DeleteKegiatan)
 }
 func SetUpRouterTahunAnggaran(e *gin.RouterGroup) {
 	c := controllers.NewTahunAnggaranController()
-	group := e.Group("/tahun-anggaran")
+	group := e.Group("tahun-anggaran")
 	group.Use(middleware.JWTMiddleware())
-	group.GET("/", c.GetData)
-	group.POST("/", c.CreateData)
+	group.GET("", c.GetData)
+	group.POST("", c.CreateData)
 	group.PUT("/:id", c.UpdateData)
 	group.DELETE("/:id", c.DeleteData)
 }
 func SetUpRouterAuth(e *gin.RouterGroup) {
 	c := controllers.NewAuthUserController()
-	group := e.Group("/auth")
+	group := e.Group("auth")
 	group.POST("/register", c.RegisterUser)
 	group.POST("/login", c.Login)
 }
@@ -70,10 +94,10 @@ func SetUpRouterAuth(e *gin.RouterGroup) {
 // It includes endpoints for retrieving, creating, updating, deleting, and importing data from a CSV file.
 func SetUpRouterJabatanDesa(e *gin.RouterGroup) {
 	c := controllers.NewControllerJabatanDesa()
-	group := e.Group("/jabatan-desa")
+	group := e.Group("jabatan-desa")
 	group.Use(middleware.JWTMiddleware())
-	group.GET("/", c.GetData)
-	group.POST("/", c.CreateData)
+	group.GET("", c.GetData)
+	group.POST("", c.CreateData)
 	group.PUT("/:id", c.UpdateData)
 	group.DELETE("/:id", c.DeleteData)
 	group.POST("/import-csv", c.ImportDataCsv)
@@ -83,30 +107,30 @@ func SetUpRouterJabatanDesa(e *gin.RouterGroup) {
 
 func SetUpRouterKelompokBelanjaDesa(e *gin.RouterGroup) {
 	c := controllers.NewControllerKelompokBelanja()
-	group := e.Group("/kelompok-belanja-desa")
+	group := e.Group("kelompok-belanja-desa")
 	group.Use(middleware.JWTMiddleware())
-	group.GET("/", c.GetData)
-	group.POST("/", c.CreateData)
+	group.GET("", c.GetData)
+	group.POST("", c.CreateData)
 	group.PUT("/:id", c.UpdateData)
 	group.DELETE("/:id", c.DeleteData)
 	group.POST("/import-csv", c.ImportDataCsv)
 }
 func SetUpRouterJenisBelanjaDesa(e *gin.RouterGroup) {
 	c := controllers.NewControllerJenisBelanja()
-	group := e.Group("/jenis-belanja-desa")
+	group := e.Group("jenis-belanja-desa")
 	group.Use(middleware.JWTMiddleware())
-	group.GET("/", c.GetAll)
-	group.POST("/", c.CreateData)
+	group.GET("", c.GetAll)
+	group.POST("", c.CreateData)
 	group.PUT("/:id", c.UpdateData)
 	group.DELETE("/:id", c.DeleteData)
 }
 
 func SetUpRouterObjekBelanjaDesa(e *gin.RouterGroup) {
 	c := controllers.NewControllerObjekBelanjaDesa()
-	group := e.Group("/objek-belanja-desa")
+	group := e.Group("objek-belanja-desa")
 	group.Use(middleware.JWTMiddleware())
-	group.GET("/", c.GetAll)
-	group.POST("/", c.CreateData)
+	group.GET("", c.GetAll)
+	group.POST("", c.CreateData)
 	group.PUT("/:id", c.UpdateData)
 	group.DELETE("/:id", c.DeleteData)
 }
@@ -115,10 +139,10 @@ func SetUpRouterObjekBelanjaDesa(e *gin.RouterGroup) {
 
 func SetUpRouterKelompokPendapatanDesa(e *gin.RouterGroup) {
 	c := controllers.NewKelompokPendapatanController()
-	group := e.Group("/kelompok-pendapatan-desa")
+	group := e.Group("kelompok-pendapatan-desa")
 	group.Use(middleware.JWTMiddleware())
-	group.GET("/", c.GetData)
-	group.POST("/", c.CreateData)
+	group.GET("", c.GetData)
+	group.POST("", c.CreateData)
 	group.PUT("/:id", c.UpdateData)
 	group.DELETE("/:id", c.DeleteData)
 	group.POST("/import-csv", c.ImportDataCsv)
@@ -126,20 +150,20 @@ func SetUpRouterKelompokPendapatanDesa(e *gin.RouterGroup) {
 
 func SetUpRouterJenisPendapatanDesa(e *gin.RouterGroup) {
 	c := controllers.NewControllerJenisPendapatan()
-	group := e.Group("/jenis-pendapatan-desa")
+	group := e.Group("jenis-pendapatan-desa")
 	group.Use(middleware.JWTMiddleware())
-	group.GET("/", c.GetAll)
-	group.POST("/", c.CreateData)
+	group.GET("", c.GetAll)
+	group.POST("", c.CreateData)
 	group.PUT("/:id", c.UpdateData)
 	group.DELETE("/:id", c.DeleteData)
 }
 
 func SetUpRouterObjekPendapatan(e *gin.RouterGroup) {
 	c := controllers.NewObjekPendapatanController()
-	group := e.Group("/objek-pendapatan-desa")
+	group := e.Group("objek-pendapatan-desa")
 	group.Use(middleware.JWTMiddleware())
-	group.GET("/", c.GetAll)
-	group.POST("/", c.CreateData)
+	group.GET("", c.GetAll)
+	group.POST("", c.CreateData)
 	group.PUT("/:id", c.UpdateData)
 	group.DELETE("/:id", c.DeleteData)
 }
@@ -157,4 +181,5 @@ func RegisterRoutes(r *gin.Engine) {
 	SetUpRouterKelompokPendapatanDesa(api)
 	SetUpRouterJenisPendapatanDesa(api)
 	SetUpRouterObjekPendapatan(api)
+	setUpRouterPing(api)
 }

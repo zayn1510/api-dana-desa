@@ -8,14 +8,14 @@ import (
 
 func SetCors(r *gin.Engine) {
 	r.Use(cors.New(cors.Config{
-		AllowOrigins:     []string{"*"},
+		AllowOrigins:     []string{"http://localhost:8001"},
 		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
 		AllowHeaders:     []string{"Origin", "Content-Type", "Authorization"},
 		ExposeHeaders:    []string{"Content-Length"},
 		AllowCredentials: true,
 		MaxAge:           12 * time.Hour,
 	}))
-	r.OPTIONS("/*cors", func(c *gin.Context) {
-		c.AbortWithStatus(204)
+	r.OPTIONS("/*path", func(c *gin.Context) {
+		c.Status(204)
 	})
 }

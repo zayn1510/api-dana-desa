@@ -300,6 +300,7 @@ func createModel(name string) {
 	// Template isi file model
 	content := fmt.Sprintf(`package %s
 	import (
+	"apidanadesa/config"
 	"github.com/joho/godotenv"
 	"os"
 	"log"
@@ -310,12 +311,7 @@ func createModel(name string) {
 	}
 	
 	func (%s) TableName() string {
-		errenv := godotenv.Load()
-		if errenv != nil {
-			log.Fatal(errenv)
-		}
-		DB_PREFIX := os.Getenv("DB_PREFIX")
-		return DB_PREFIX+"_%s"
+		return config.GetDBPrefix(%s)
 	}
 	`, "models", modelName, modelName, strings.ToLower(modelName))
 
