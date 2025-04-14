@@ -15,5 +15,5 @@ type JabatanDesa struct {
 }
 
 func (JabatanDesa) TableName() string {
-	return config.GetDBPrefix("jabatandesa")
+	return config.GetDBPrefix("jabatan_desa")
 }

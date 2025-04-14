@@ -167,6 +167,18 @@ func SetUpRouterObjekPendapatan(e *gin.RouterGroup) {
 	group.PUT("/:id", c.UpdateData)
 	group.DELETE("/:id", c.DeleteData)
 }
+
+func SetUpRouterPerangkatDesa(e *gin.RouterGroup) {
+	c := controllers.NewPerangkatDesaController()
+	group := e.Group("perangkat-desa")
+	group.Use(middleware.JWTMiddleware())
+	group.GET("", c.GetAll)
+	group.POST("", c.SubmitForm)
+}
+
+func SetUpRouterPreviewFoto(e *gin.RouterGroup) {
+	e.GET("/preview/:filename", controllers.NewPerangkatDesaController().PreviewFile)
+}
 func RegisterRoutes(r *gin.Engine) {
 	api := r.Group("/api/v1")
 	SetUpRouterBidang(api)
@@ -182,4 +194,6 @@ func RegisterRoutes(r *gin.Engine) {
 	SetUpRouterJenisPendapatanDesa(api)
 	SetUpRouterObjekPendapatan(api)
 	setUpRouterPing(api)
+	SetUpRouterPerangkatDesa(api)
+	SetUpRouterPreviewFoto(api)
 }
