@@ -2,61 +2,89 @@ package config
 
 import (
 	"fmt"
+	"gopkg.in/yaml.v3"
 	"log"
 	"os"
 	"sync"
+	"time"
 
-	"github.com/joho/godotenv"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 )
 
 var dbconn *gorm.DB
-var once sync.Once // Agar ConnectDB hanya dipanggil sekali
+var once sync.Once
+var dbConnected bool
+
+type Config struct {
+	Database struct {
+		Hostname string `yaml:"hostname"`
+		Root     string `yaml:"root"`
+		Password string `yaml:"password"`
+		Port     int    `yaml:"port"`
+		DBName   string `yaml:"dbname"`
+		Prefix   string `yaml:"prefix"`
+	} `yaml:"database"`
+
+	JWT struct {
+		SecretKey    string `yaml:"secretkey"`
+		ExpiredToken int    `yaml:"expiredtoken"`
+	} `yaml:"jwt"`
+}
+
+var AppConfig Config
+var DB_PREFIX string
+
+func init() {
+	configFile, err := os.ReadFile("config.yaml")
+	if err != nil {
+		log.Fatalf("Gagal membaca file config.yaml: %v", err)
+	}
+
+	err = yaml.Unmarshal(configFile, &AppConfig)
+	if err != nil {
+		log.Fatalf("Gagal parsing file config.yaml: %v", err)
+	}
+
+	log.Println("config.yaml berhasil diload.")
+	DB_PREFIX = AppConfig.Database.Prefix
+}
+func GetDBPrefix(tablaName string) string {
+	return DB_PREFIX + "_" + tablaName
+}
 
 func ConnectDB() {
-	once.Do(func() { // Pastikan hanya dipanggil sekali
-		errenv := godotenv.Load()
-		if errenv != nil {
-			log.Fatal("Gagal membaca .env: ", errenv)
+	once.Do(func() {
+		if !dbConnected {
+			for i := 0; i < 5; i++ {
+				dsn := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?parseTime=True",
+					AppConfig.Database.Root,
+					AppConfig.Database.Password,
+					AppConfig.Database.Hostname,
+					AppConfig.Database.Port,
+					AppConfig.Database.DBName)
+
+				database, err := gorm.Open(mysql.Open(dsn), &gorm.Config{
+					SkipDefaultTransaction: true,
+					PrepareStmt:            true,
+				})
+				if err == nil {
+					sqlDB, err := database.DB()
+					if err == nil && sqlDB.Ping() == nil {
+						dbconn = database
+						dbConnected = true
+						log.Println("Database berhasil terkoneksi!")
+						return
+					}
+					log.Println("Koneksi berhasil tapi ping gagal, retrying...")
+				}
+				log.Println("Koneksi Gagal, coba lagi...", err)
+				time.Sleep(2 * time.Second)
+			}
+			log.Fatal("Gagal terkoneksi ke database setelah 5 percobaan")
+		} else {
+			log.Println("Koneksi database sudah berhasil sebelumnya, tidak mencoba ulang.")
 		}
-
-		DB_HOST := os.Getenv("DB_HOST")
-		DB_NAME := os.Getenv("DB_NAME")
-		DB_USER := os.Getenv("DB_USER")
-		DB_PASS := os.Getenv("DB_PASS")
-		DB_PORT := os.Getenv("DB_PORT")
-
-		// Cek apakah variabel environment sudah terisi
-		if DB_HOST == "" || DB_NAME == "" || DB_USER == "" || DB_PASS == "" || DB_PORT == "" {
-			log.Fatal("Pastikan semua variabel database di .env sudah diisi!")
-		}
-
-		dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?parseTime=True", DB_USER, DB_PASS, DB_HOST, DB_PORT, DB_NAME)
-		database, err := gorm.Open(mysql.Open(dsn), &gorm.Config{
-			SkipDefaultTransaction: true,
-			PrepareStmt:            true,
-		})
-		if err != nil {
-			log.Fatal("Koneksi Gagal: ", err)
-		}
-
-		// Cek apakah koneksi berhasil
-		sqlDB, err := database.DB()
-		if err != nil {
-			log.Fatal("Gagal mendapatkan koneksi database: ", err)
-		}
-
-		// Ping database untuk memastikan koneksi hidup
-		err = sqlDB.Ping()
-		if err != nil {
-			log.Fatal("Gagal ping database: ", err)
-		}
-
-		dbconn = database
-		fmt.Println("Database berhasil terkoneksi!")
-
-		
 	})
 }
 

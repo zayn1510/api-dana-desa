@@ -19,13 +19,15 @@ func main() {
 	generateSubBidang(db)
 	generateKegiatan(db)
 	generateTahunAnggaran(db)
-	generateJabatanDesa(db)
+
 	generateJenisBelanjaDesa(db)
 	generateKelompokBelanjaDesa(db)
-		generateObjekBelanjaDesa(db)
-		generateKelompokPendapatan(db)
-		generateJenisPendapatan(db)
-		generateObjekPendapatan(db)
+	generateObjekBelanjaDesa(db)
+	generateKelompokPendapatan(db)
+	generateJenisPendapatan(db)
+	generateObjekPendapatan(db)
+	generatePerangkatDesa(db)
+	generateJabatanDesa(db)
 	fmt.Println("Semua migrasi selesai!")
 }
 
@@ -67,13 +69,6 @@ func generateTahunAnggaran(db *gorm.DB) {
 	}
 	fmt.Println("Migrasi TahunAnggaran selesai.")
 }
-func generateJabatanDesa(db *gorm.DB) {
-	fmt.Println("Migrasi tabel JabatanDesa...")
-	if err := migrations.MigrateJabatanDesa(db); err != nil {
-		log.Fatalf("Gagal migrasi JabatanDesa: %v", err)
-	}
-	fmt.Println("Migrasi JabatanDesa selesai.")
-}
 func generateJenisBelanjaDesa(db *gorm.DB) {
 	fmt.Println("Migrasi tabel JenisBelanjaDesa...")
 	if err := migrations.MigrateJenisBelanjaDesa(db); err != nil {
@@ -91,30 +86,45 @@ func generateKelompokBelanjaDesa(db *gorm.DB) {
 }
 
 func generateObjekBelanjaDesa(db *gorm.DB) {
-		fmt.Println("Migrasi tabel ObjekBelanjaDesa...")
-		if err := migrations.MigrateObjekBelanjaDesa(db); err != nil {
-			log.Fatalf("Gagal migrasi ObjekBelanjaDesa: %v", err)
-		}
-		fmt.Println("Migrasi ObjekBelanjaDesa selesai.")
+	fmt.Println("Migrasi tabel ObjekBelanjaDesa...")
+	if err := migrations.MigrateObjekBelanjaDesa(db); err != nil {
+		log.Fatalf("Gagal migrasi ObjekBelanjaDesa: %v", err)
+	}
+	fmt.Println("Migrasi ObjekBelanjaDesa selesai.")
 }
 func generateKelompokPendapatan(db *gorm.DB) {
-		fmt.Println("Migrasi tabel KelompokPendapatan...")
-		if err := migrations.MigrateKelompokPendapatan(db); err != nil {
-			log.Fatalf("Gagal migrasi KelompokPendapatan: %v", err)
-		}
-		fmt.Println("Migrasi KelompokPendapatan selesai.")
+	fmt.Println("Migrasi tabel KelompokPendapatan...")
+	if err := migrations.MigrateKelompokPendapatan(db); err != nil {
+		log.Fatalf("Gagal migrasi KelompokPendapatan: %v", err)
+	}
+	fmt.Println("Migrasi KelompokPendapatan selesai.")
 }
 func generateJenisPendapatan(db *gorm.DB) {
-		fmt.Println("Migrasi tabel JenisPendapatan...")
-		if err := migrations.MigrateJenisPendapatan(db); err != nil {
-			log.Fatalf("Gagal migrasi JenisPendapatan: %v", err)
-		}
-		fmt.Println("Migrasi JenisPendapatan selesai.")
+	fmt.Println("Migrasi tabel JenisPendapatan...")
+	if err := migrations.MigrateJenisPendapatan(db); err != nil {
+		log.Fatalf("Gagal migrasi JenisPendapatan: %v", err)
+	}
+	fmt.Println("Migrasi JenisPendapatan selesai.")
 }
 func generateObjekPendapatan(db *gorm.DB) {
-		fmt.Println("Migrasi tabel ObjekPendapatan...")
-		if err := migrations.MigrateObjekPendapatan(db); err != nil {
-			log.Fatalf("Gagal migrasi ObjekPendapatan: %v", err)
-		}
-		fmt.Println("Migrasi ObjekPendapatan selesai.")
+	fmt.Println("Migrasi tabel ObjekPendapatan...")
+	if err := migrations.MigrateObjekPendapatan(db); err != nil {
+		log.Fatalf("Gagal migrasi ObjekPendapatan: %v", err)
+	}
+	fmt.Println("Migrasi ObjekPendapatan selesai.")
+}
+func generatePerangkatDesa(db *gorm.DB) {
+	fmt.Println("Migrasi tabel PerangkatDesa...")
+	if err := migrations.MigratePerangkatDesa(db); err != nil {
+		log.Fatalf("Gagal migrasi PerangkatDesa: %v", err)
+	}
+	fmt.Println("Migrasi PerangkatDesa selesai.")
+}
+
+func generateJabatanDesa(db *gorm.DB) {
+	fmt.Println("Migrasi tabel JabatanDesa...")
+	if err := migrations.MigrateJabatanDesa(db); err != nil {
+		log.Fatalf("Gagal migrasi JabatanDesa: %v", err)
+	}
+	fmt.Println("Migrasi JabatanDesa selesai.")
 }

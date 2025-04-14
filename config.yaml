@@ -1,0 +1,10 @@
+database:
+  hostname: db
+  root: zayndev
+  password: Eren1510_
+  port: 3306
+  dbname: db_dana_desa
+  prefix: dnd
+jwt:
+  secretkey: rahasia
+  expiredtoken: 5

@@ -1,10 +1,8 @@
 package models
 
 import (
-	"github.com/joho/godotenv"
+	"apidanadesa/config"
 	"gorm.io/gorm"
-	"log"
-	"os"
 	"time"
 )
 
@@ -18,10 +16,5 @@ type KelompokPendapatan struct {
 }
 
 func (KelompokPendapatan) TableName() string {
-	errenv := godotenv.Load()
-	if errenv != nil {
-		log.Fatal(errenv)
-	}
-	DB_PREFIX := os.Getenv("DB_PREFIX")
-	return DB_PREFIX + "_kelompokpendapatan"
+	return config.GetDBPrefix("kelompokpendapatan")
 }

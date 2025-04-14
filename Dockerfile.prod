@@ -1,0 +1,21 @@
+# Stage 1: Build
+FROM golang:latest AS builder
+
+WORKDIR /app
+COPY go.mod go.sum ./
+RUN go mod download
+
+COPY .env .env
+COPY . .
+RUN CGO_ENABLED=0 GOOS=linux go build -o apidanadesa .
+
+# Stage 2: Run (super minimal)
+FROM scratch
+
+WORKDIR /app
+COPY --from=builder /app/apidanadesa .
+
+# Copy file config.yaml ke image
+COPY --from=builder /app/config.yaml .
+EXPOSE 8080
+ENTRYPOINT ["./apidanadesa"]
