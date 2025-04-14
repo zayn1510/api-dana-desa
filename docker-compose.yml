@@ -9,8 +9,6 @@ services:
       - "8004:8080"
     volumes:
       - .:/app
-    env_file:
-      - .env
     restart: always
     depends_on:
       - db
@@ -25,8 +23,6 @@ services:
       dockerfile: Dockerfile.prod
     ports:
       - "8005:8080"
-    env_file:
-      - .env
     depends_on:
       - db
     restart: always

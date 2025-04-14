@@ -15,5 +15,7 @@ FROM scratch
 WORKDIR /app
 COPY --from=builder /app/apidanadesa .
 
+# Copy file config.yaml ke image
+COPY --from=builder /app/config.yaml .
 EXPOSE 8080
 ENTRYPOINT ["./apidanadesa"]
