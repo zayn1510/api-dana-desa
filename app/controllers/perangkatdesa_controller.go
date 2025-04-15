@@ -88,6 +88,77 @@ func (c *PerangkatDesaController) SubmitForm(ctx *gin.Context) {
 	resources.Success(ctx, "success", req)
 }
 
+func (c *PerangkatDesaController) UpdatePerangkat(ctx *gin.Context) {
+	var req requests.PerangkatDesaCreateRequest
+
+	err := ctx.ShouldBindWith(&req, binding.FormMultipart)
+	if err != nil {
+		resources.BadRequest(ctx, err)
+		return
+	}
+	idStr := ctx.Param("id")
+	id, err := strconv.Atoi(idStr)
+	if err != nil {
+		resources.BadRequest(ctx, err)
+		return
+	}
+
+	if err, validationErrors := requests.Validate(req); err != nil {
+		resources.BadRequest(ctx, validationErrors)
+		return
+	}
+
+	filePath := ""
+
+	if req.Foto != nil {
+		if req.Foto.Size > maxFileSize {
+			resources.BadRequest(ctx, fmt.Errorf("file size too big"))
+			return
+		}
+		ext := strings.ToLower(filepath.Ext(req.Foto.Filename))
+		if !allowedExtensions[ext] {
+			resources.BadRequest(ctx, fmt.Errorf("file extension not allowed"))
+			return
+		}
+		filePath = fmt.Sprintf("./uploads/%s", req.Foto.Filename)
+	}
+
+	layout := "2006-01-02" // Format tanggal: yyyy-mm-dd
+	tglLahir, err := time.Parse(layout, req.TglLahir)
+	if err != nil {
+		resources.BadRequest(ctx, "Format tanggal tidak valid. Gunakan format YYYY-MM-DD")
+		return
+	}
+	tglSk, err := time.Parse(layout, req.TglSK)
+	if err != nil {
+		resources.BadRequest(ctx, "Format tanggal tidak valid. Gunakan format YYYY-MM-DD")
+		return
+	}
+	data := &models.PerangkatDesa{
+		IDJabatan:    req.IDJabatan,
+		NamaLengkap:  req.NamaLengkap,
+		TempatLahir:  req.TempatLahir,
+		TglLahir:     tglLahir,
+		TglSK:        tglSk,
+		JenisKelamin: req.JenisKelamin,
+		NoHandphone:  req.NoHandphone,
+		NoSK:         req.NoSK,
+		Foto:         filePath,
+	}
+
+	if err := c.service.Update(data, uint(id)); err != nil {
+		resources.InternalError(ctx, err)
+		return
+	}
+	if req.Foto != nil {
+		if err := ctx.SaveUploadedFile(req.Foto, filePath); err != nil {
+			resources.InternalError(ctx, err)
+			return
+		}
+	}
+	resources.Success(ctx, "success", req)
+
+}
 func (c *PerangkatDesaController) GetAll(ctx *gin.Context) {
 	pageStr := ctx.DefaultQuery("page", "1")
 	limitStr := ctx.DefaultQuery("limit", "10")
@@ -136,4 +207,30 @@ func (c *PerangkatDesaController) PreviewFile(ctx *gin.Context) {
 	}
 	// Kirim file sebagai response
 	ctx.File(filePath)
+}
+func (c *PerangkatDesaController) DeletePerangkat(ctx *gin.Context) {
+	idStr := ctx.Param("id")
+	id, err := strconv.Atoi(idStr)
+	if err != nil {
+		resources.BadRequest(ctx, err)
+		return
+	}
+
+	perangkat, err := c.service.Delete(uint(id))
+	if err != nil {
+		resources.InternalError(ctx, err)
+		return
+	}
+	if perangkat.Foto != "" {
+		filePath := filepath.Join("uploads", perangkat.Foto)
+
+		if _, err := os.Stat(filePath); err == nil {
+			// File ada, hapus
+			if err := os.Remove(filePath); err != nil {
+				resources.InternalError(ctx, fmt.Errorf("gagal menghapus file: %v", err))
+				return
+			}
+		}
+	}
+	resources.Success(ctx, "success")
 }

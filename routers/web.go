@@ -174,11 +174,24 @@ func SetUpRouterPerangkatDesa(e *gin.RouterGroup) {
 	group.Use(middleware.JWTMiddleware())
 	group.GET("", c.GetAll)
 	group.POST("", c.SubmitForm)
+	group.POST("/update/:id", c.UpdatePerangkat)
+	group.DELETE("/:id", c.DeletePerangkat)
 }
 
 func SetUpRouterPreviewFoto(e *gin.RouterGroup) {
 	e.GET("/preview/:filename", controllers.NewPerangkatDesaController().PreviewFile)
 }
+
+func SetUpRouterPolaKegiatan(e *gin.RouterGroup) {
+	c := controllers.NewPolaKegiatanController()
+	group := e.Group("pola-kegiatan")
+	group.Use(middleware.JWTMiddleware())
+	group.GET("", c.GetAll)
+	group.POST("", c.Create)
+	group.PUT("/:id", c.Update)
+	group.DELETE("/:id", c.Delete)
+}
+
 func RegisterRoutes(r *gin.Engine) {
 	api := r.Group("/api/v1")
 	SetUpRouterBidang(api)
@@ -196,4 +209,5 @@ func RegisterRoutes(r *gin.Engine) {
 	setUpRouterPing(api)
 	SetUpRouterPerangkatDesa(api)
 	SetUpRouterPreviewFoto(api)
+	SetUpRouterPolaKegiatan(api)
 }

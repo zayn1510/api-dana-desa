@@ -123,6 +123,7 @@ func (c *BidangController) DeleteBidang(ctx *gin.Context) {
 	if err != nil {
 		if strings.Contains(err.Error(), "tidak ditemukan") {
 			resources.NotFound(ctx, err)
+			return
 		}
 		resources.InternalError(ctx, err)
 		return
