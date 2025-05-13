@@ -5,6 +5,7 @@ import (
 	"apidanadesa/app/middleware"
 	"apidanadesa/app/models"
 	"apidanadesa/config"
+
 	"github.com/gin-gonic/gin"
 )
 
@@ -192,6 +193,26 @@ func SetUpRouterPolaKegiatan(e *gin.RouterGroup) {
 	group.DELETE("/:id", c.Delete)
 }
 
+func SetUpRouterSumberDana(api *gin.RouterGroup) {
+	c := controllers.NewSumberDanaController()
+	sumberdana := api.Group("sumber-dana")
+	sumberdana.Use(middleware.JWTMiddleware())
+	sumberdana.GET("", c.GetAll)
+	sumberdana.POST("", c.Save)
+	sumberdana.PUT("/:id", c.Update)
+	sumberdana.DELETE("/:id", c.Delete)
+}
+
+func SetUpRouterAnggaranKegiatan(api *gin.RouterGroup) {
+	c := controllers.NewAnggaranKegiatanController()
+	anggaran := api.Group("anggaran-kegiatan")
+	anggaran.Use(middleware.JWTMiddleware())
+	anggaran.GET("", c.GetAll)
+	anggaran.POST("", c.Save)
+	anggaran.PUT("/:id", c.Update)
+	anggaran.DELETE("/:id", c.Delete)
+}
+
 func RegisterRoutes(r *gin.Engine) {
 	api := r.Group("/api/v1")
 	SetUpRouterBidang(api)
@@ -210,4 +231,6 @@ func RegisterRoutes(r *gin.Engine) {
 	SetUpRouterPerangkatDesa(api)
 	SetUpRouterPreviewFoto(api)
 	SetUpRouterPolaKegiatan(api)
+	SetUpRouterSumberDana(api)
+	SetUpRouterAnggaranKegiatan(api)
 }
