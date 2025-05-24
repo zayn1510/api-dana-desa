@@ -31,6 +31,7 @@ func main() {
 		generatePolaKegiatan(db)
 		generateSumberDana(db)
 		generateAnggaranKegiatan(db)
+		generatedetailAnggaranKegiatan(db)
 	fmt.Println("Semua migrasi selesai!")
 }
 
@@ -152,4 +153,11 @@ func generateAnggaranKegiatan(db *gorm.DB) {
 			log.Fatalf("Gagal migrasi AnggaranKegiatan: %v", err)
 		}
 		fmt.Println("Migrasi AnggaranKegiatan selesai.")
+}
+func generatedetailAnggaranKegiatan(db *gorm.DB) {
+		fmt.Println("Migrasi tabel detailAnggaranKegiatan...")
+		if err := migrations.MigratedetailAnggaranKegiatan(db); err != nil {
+			log.Fatalf("Gagal migrasi detailAnggaranKegiatan: %v", err)
+		}
+		fmt.Println("Migrasi detailAnggaranKegiatan selesai.")
 }
