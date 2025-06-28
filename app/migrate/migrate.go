@@ -32,6 +32,7 @@ func main() {
 		generateSumberDana(db)
 		generateAnggaranKegiatan(db)
 		generatedetailAnggaranKegiatan(db)
+		generaterab(db)
 	fmt.Println("Semua migrasi selesai!")
 }
 
@@ -160,4 +161,11 @@ func generatedetailAnggaranKegiatan(db *gorm.DB) {
 			log.Fatalf("Gagal migrasi detailAnggaranKegiatan: %v", err)
 		}
 		fmt.Println("Migrasi detailAnggaranKegiatan selesai.")
+}
+func generaterab(db *gorm.DB) {
+		fmt.Println("Migrasi tabel rab...")
+		if err := migrations.Migraterab(db); err != nil {
+			log.Fatalf("Gagal migrasi rab: %v", err)
+		}
+		fmt.Println("Migrasi rab selesai.")
 }

@@ -222,6 +222,16 @@ func SetUpRouterDetailAnggaranKegiatan(api *gin.RouterGroup) {
 	anggaran.DELETE("/:id", c.DeleteDetailAnggaranKegiatan)
 }
 
+func SetUpRouterRencanaAnggaranBelanja(api *gin.RouterGroup) {
+	c := controllers.NewControllerRab()
+	anggaran := api.Group("rencana-anggaran-belanja")
+	anggaran.Use(middleware.JWTMiddleware())
+	anggaran.GET("", c.GetAll)
+	anggaran.POST("", c.Create)
+	anggaran.PUT("/:id", c.Update)
+	anggaran.DELETE("/:id", c.Delete)
+}
+
 func RegisterRoutes(r *gin.Engine) {
 	api := r.Group("/api/v1")
 	SetUpRouterBidang(api)
@@ -243,4 +253,5 @@ func RegisterRoutes(r *gin.Engine) {
 	SetUpRouterSumberDana(api)
 	SetUpRouterAnggaranKegiatan(api)
 	SetUpRouterDetailAnggaranKegiatan(api)
+	SetUpRouterRencanaAnggaranBelanja(api)
 }
